@@ -1,10 +1,11 @@
 import argparse
 import sys
+from importlib.resources import files
 from pathlib import Path
 
 from .config import RuleBook, Unreadable
 from .languages import language_of
-from .scan import Comment, comments_in
+from .scan import Comment, Unopenable, comments_in
 
 CLEAN = 0
 FOUND = 1
@@ -21,17 +22,33 @@ def main(argv: list[str] | None = None) -> int:
         return UNUSABLE
 
     try:
-        undeclared = [comment for path in paths for comment in undeclared_in(path)]
-    except Unreadable as failure:
+        undeclared = undeclared_in(paths)
+    except (Unreadable, Unopenable) as failure:
         print(failure, file=sys.stderr)
         return UNUSABLE
 
     for comment in undeclared:
-        print(f"{comment.file}:{comment.line}: comment — {first_line(comment.text)}")
+        print(f"{comment.file}:{comment.line}: comment")
+        for line in comment.text.splitlines():
+            print(f"    {line}")
     if not undeclared:
         return CLEAN
     print(f"\n{count(len(undeclared))} not declared in .commentcensor.yaml")
+    print(f"\n{manifesto()}")
+    print(
+        "Declare a comment that remains:\n\n"
+        "  allow:\n"
+        "    - file: path/to/file\n"
+        '      text: "the comment, exactly as printed above"\n'
+        '      why: "why the fact cannot be carried anywhere better"'
+    )
     return FOUND
+
+
+def manifesto() -> str:
+    packaged = files("commentcensor").joinpath("MANIFESTO.md")
+    source = Path(__file__).parents[2] / "MANIFESTO.md"
+    return (packaged if packaged.is_file() else source).read_text(encoding="utf-8").strip()
 
 
 def parser() -> argparse.ArgumentParser:
@@ -43,35 +60,41 @@ def parser() -> argparse.ArgumentParser:
     return built
 
 
-def undeclared_in(path: Path) -> list[Comment]:
-    book = RuleBook(path if path.is_dir() else path.parent)
-    return [
-        comment
-        for file in files_under(path)
-        if not book.for_file(file).skips(file.resolve())
-        for comment in comments_in(file)
-        if book.for_file(file).reason_for(file.resolve(), comment.text) is None
-    ]
+def undeclared_in(paths: list[Path]) -> list[Comment]:
+    book = RuleBook()
+    found = []
+    for file in files_under(paths):
+        rules = book.for_file(file)
+        if rules.skips(file.resolve()):
+            continue
+        found += [
+            comment
+            for comment in comments_in(file)
+            if rules.reason_for(file.resolve(), comment.text) is None
+        ]
+    return found
 
 
-def files_under(path: Path) -> list[Path]:
+def files_under(paths: list[Path]) -> list[Path]:
+    found: dict[Path, Path] = {}
+    for path in paths:
+        for file in walked(path):
+            found.setdefault(file.resolve(), file)
+    return [found[key] for key in sorted(found)]
+
+
+def walked(path: Path) -> list[Path]:
     if path.is_file():
         return [path] if language_of(path.suffix) else []
-    return sorted(
+    return [
         file
         for file in path.rglob("*")
         if file.is_file() and language_of(file.suffix) and not hidden(file, path)
-    )
+    ]
 
 
 def hidden(file: Path, root: Path) -> bool:
     return any(part.startswith(".") for part in file.relative_to(root).parts)
-
-
-def first_line(text: str) -> str:
-    lines = text.splitlines()
-    head = lines[0].strip() if lines else ""
-    return f"{head} …" if len(lines) > 1 else head
 
 
 def count(found: int) -> str:

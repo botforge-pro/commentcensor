@@ -5,6 +5,12 @@ licence_markers:
 
 marker_characters: "/-#*<!"
 
+section_markers:
+  - "MARK:"
+  - "MARK -"
+  - "region"
+  - "endregion"
+
 languages:
   python:
     grammar: python
@@ -22,7 +28,6 @@ languages:
       - "fmt:"
       - "isort:"
       - "yapf:"
-      - "black"
 
   go:
     grammar: go
@@ -32,10 +37,6 @@ languages:
       - "+build"
       - "nolint"
       - "noinspection"
-      - "export "
-      - "cgo "
-      - "line "
-      - "extern "
 
   sql:
     grammar: sql

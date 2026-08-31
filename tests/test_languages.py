@@ -94,3 +94,27 @@ def test_the_line_is_the_one_the_comment_starts_on(tmp_path):
     source = "package main\n\nvar x = 1\n\n// what the reader is told\nvar y = 2\n"
     found = comments_in(written(tmp_path, "sample.go", source))
     assert [comment.line for comment in found] == [5]
+
+
+def test_lines_of_one_comment_block_are_one_comment(tmp_path):
+    source = "// the provider answers\n// out of order\nlet x = 1\n"
+    found = comments_in(written(tmp_path, "sample.swift", source))
+    assert [comment.text for comment in found] == ["// the provider answers\n// out of order"]
+
+
+def test_two_blocks_apart_stay_two_comments(tmp_path):
+    source = "// first thing\nlet x = 1\n// second thing\nlet y = 2\n"
+    assert len(comments_in(written(tmp_path, "sample.swift", source))) == 2
+
+
+def test_a_block_indented_differently_is_a_second_comment(tmp_path):
+    source = "// at the margin\n    // indented under something\nlet x = 1\n"
+    assert len(comments_in(written(tmp_path, "sample.swift", source))) == 2
+
+
+def test_a_section_marker_is_not_a_comment(tmp_path):
+    assert comments_in(written(tmp_path, "sample.swift", "// MARK: - Reading\nlet x = 1\n")) == []
+
+
+def test_a_region_marker_is_not_a_comment(tmp_path):
+    assert comments_in(written(tmp_path, "sample.kt", "// region reading\nval x = 1\n")) == []

@@ -4,8 +4,10 @@ from importlib.resources import files
 
 import yaml
 
+PACKAGE = "commentcensor"
 DATA = "languages.yaml"
 REQUIRED = ("grammar", "extensions", "directives")
+DEFAULT_MARKERS = "/-#*<!"
 
 
 class Undefined(Exception):
@@ -21,10 +23,17 @@ class Language:
 
 
 @cache
+def written() -> dict:
+    loaded = yaml.safe_load(files(PACKAGE).joinpath(DATA).read_text())
+    if not isinstance(loaded, dict):
+        raise Undefined(f"{DATA}: expected a mapping")
+    return loaded
+
+
+@cache
 def defined() -> dict[str, Language]:
-    written = yaml.safe_load(files("commentcensor").joinpath(DATA).read_text())
     by_extension: dict[str, Language] = {}
-    for name, entry in (written.get("languages") or {}).items():
+    for name, entry in (written().get("languages") or {}).items():
         missing = [key for key in REQUIRED if not entry.get(key)]
         if missing:
             raise Undefined(f"{DATA}: {name} has no {', '.join(missing)}")
@@ -45,28 +54,43 @@ def defined() -> dict[str, Language]:
 
 
 @cache
-def licence_markers() -> tuple[str, ...]:
-    written = yaml.safe_load(files("commentcensor").joinpath(DATA).read_text())
-    return tuple(str(marker) for marker in written.get("licence_markers") or ())
+def phrases(key: str) -> tuple[str, ...]:
+    return tuple(str(phrase) for phrase in written().get(key) or ())
 
 
 @cache
 def marker_characters() -> str:
-    written = yaml.safe_load(files("commentcensor").joinpath(DATA).read_text())
-    return str(written.get("marker_characters") or "/-#*<!")
+    return str(written().get("marker_characters") or DEFAULT_MARKERS)
 
 
 def language_of(suffix: str) -> Language | None:
     return defined().get(suffix.lower())
 
 
-def instructs_a_tool(text: str, language: Language) -> bool:
+def opens_with(text: str, phrases: tuple[str, ...]) -> bool:
     stripped = text.lstrip(marker_characters()).lstrip()
-    return any(stripped.startswith(directive) for directive in language.directives)
+    return any(opens_exactly_with(stripped, phrase) for phrase in phrases)
+
+
+def opens_exactly_with(stripped: str, phrase: str) -> bool:
+    if not stripped.startswith(phrase):
+        return False
+    if not phrase[-1].isalnum():
+        return True
+    rest = stripped[len(phrase) :]
+    return not rest or not rest[0].isalnum()
+
+
+def instructs_a_tool(text: str, language: Language) -> bool:
+    return opens_with(text, language.directives)
+
+
+def names_a_section(text: str) -> bool:
+    return opens_with(text, phrases("section_markers"))
 
 
 def states_a_licence(text: str, line: int) -> bool:
-    return line <= 5 and any(marker in text for marker in licence_markers())
+    return line <= 5 and any(marker in text for marker in phrases("licence_markers"))
 
 
 def runs_the_file(text: str, line: int) -> bool:

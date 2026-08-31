@@ -23,6 +23,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/commentcensor"]
+force-include = { "MANIFESTO.md" = "commentcensor/MANIFESTO.md" }
 
 [dependency-groups]
 dev = ["pytest>=8.0", "ruff>=0.6"]

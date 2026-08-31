@@ -3,46 +3,15 @@
 Every comment in your code is an error until you write down why it cannot
 be avoided.
 
+[Read the manifesto.](MANIFESTO.md)
+
 ```
 $ commentcensor src/
-src/store.py:41: comment — "# retry three times before giving up"
-src/parser.go:87: comment — "// the server sends the fields out of order"
+src/store.py:41: comment — # retry three times before giving up
+src/parser.go:87: comment — // the server sends the fields out of order
 
 2 comments not declared in .commentcensor.yaml
 ```
-
-## Why
-
-A comment is the one part of a file that nothing checks. It is not
-compiled, not run, not typed and not covered by a test, so it drifts
-away from the code beside it — and then misleads with the authority of
-something written down. The more comments a file carries, the less each
-one is worth reading, and the ones that do carry something are lost among
-the ones that repeat the line below them.
-
-So the default is none, and each exception is argued in writing.
-
-## What carries it instead
-
-A comment is usually a repair for something the code should have said
-itself:
-
-- **a name.** `if wiki.origin == .added` with a paragraph above it becomes
-  `if wiki.canBeTakenOff`. The paragraph moves onto the property, once,
-  instead of onto every use of it.
-- **a test.** "a node that moved changes the page it belongs to" is a
-  requirement. Written as a comment nothing holds it; written as a test
-  name it fails when it stops being true.
-- **a different shape.** A comment explaining how three flags stay in step
-  is a description of the wrong structure. One state instead of three
-  flags, and there is nothing left to explain.
-- **nothing at all.** Most of what gets written was already legible in the
-  code.
-
-What is left after that is worth keeping: a fact from outside the file
-that the reader cannot get from the code — an API that behaves against
-its own documentation, a workaround for a bug in a dependency, a measured
-number, a rule of the domain. Those are the ones you declare.
 
 ## What it does
 
@@ -51,10 +20,10 @@ each one that is not declared in `.commentcensor.yaml` with a reason.
 Exit code is 1 when anything is undeclared, so it belongs in CI beside
 the formatter.
 
-Comments that instruct a tool rather than a reader — `# noqa`,
-`# type: ignore`, `//go:embed`, `// swiftlint:disable`, `@ts-expect-error`,
-a shebang, a license header — are not comments in this sense and pass
-without being declared.
+These are not comments in that sense and pass without being declared:
+instructions to a tool (`# noqa`, `# type: ignore`, `//go:embed`,
+`// swiftlint:disable`, `@ts-expect-error`), a shebang, a licence header,
+and a section marker (`// MARK:`, `# region`).
 
 ## Languages
 

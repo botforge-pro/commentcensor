@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
+from fnmatch import fnmatch
 from pathlib import Path
 
 import yaml
 
 CONFIG_NAME = ".commentcensor.yaml"
+KEYS = ("skip", "allow")
+ENTRY_KEYS = ("file", "text", "why")
 
 
 class Unreadable(Exception):
@@ -18,12 +21,25 @@ class Allowance:
 
 
 @dataclass
+class Skip:
+    under: Path
+    pattern: str
+
+    def covers(self, path: Path) -> bool:
+        if not path.is_relative_to(self.under):
+            return False
+        inside = path.relative_to(self.under).as_posix()
+        named = self.pattern.rstrip("/")
+        return fnmatch(inside, named) or fnmatch(inside, f"{named}/*")
+
+
+@dataclass
 class Rules:
-    skipped: list[Path] = field(default_factory=list)
+    skipped: list[Skip] = field(default_factory=list)
     allowed: list[Allowance] = field(default_factory=list)
 
     def skips(self, path: Path) -> bool:
-        return any(path.is_relative_to(skipped) for skipped in self.skipped)
+        return any(skipped.covers(path) for skipped in self.skipped)
 
     def reason_for(self, file: Path, text: str) -> str | None:
         for allowance in self.allowed:
@@ -36,8 +52,7 @@ class Rules:
 
 
 class RuleBook:
-    def __init__(self, root: Path) -> None:
-        self.root = root.resolve()
+    def __init__(self) -> None:
         self.remembered: dict[Path, Rules] = {}
 
     def for_file(self, file: Path) -> Rules:
@@ -47,11 +62,7 @@ class RuleBook:
         if directory in self.remembered:
             return self.remembered[directory]
         above = directory.parent
-        inherited = (
-            Rules()
-            if directory == above or not directory.is_relative_to(self.root)
-            else self.for_directory(above)
-        )
+        inherited = Rules() if directory == above else self.for_directory(above)
         config = directory / CONFIG_NAME
         rules = inherited.joined(read(config)) if config.is_file() else inherited
         self.remembered[directory] = rules
@@ -65,11 +76,14 @@ def read(config: Path) -> Rules:
         raise Unreadable(f"{config}: {failure}") from failure
     if not isinstance(written, dict):
         raise Unreadable(f"{config}: expected a mapping of skip and allow")
+    unknown = sorted(set(written) - set(KEYS))
+    if unknown:
+        raise Unreadable(f"{config}: {', '.join(unknown)} is not a setting; there are {KEYS}")
 
     here = config.parent
     rules = Rules()
     for entry in written.get("skip") or []:
-        rules.skipped.append((here / str(entry)).resolve())
+        rules.skipped.append(Skip(under=here.resolve(), pattern=str(entry)))
     for entry in written.get("allow") or []:
         rules.allowed.append(allowance(entry, here, config))
     return rules
@@ -78,11 +92,16 @@ def read(config: Path) -> Rules:
 def allowance(entry: object, here: Path, config: Path) -> Allowance:
     if not isinstance(entry, dict):
         raise Unreadable(f"{config}: every allow entry is a mapping of file, text and why")
-    missing = [key for key in ("file", "text", "why") if not str(entry.get(key, "")).strip()]
+    said = {key: spoken(entry.get(key)) for key in ENTRY_KEYS}
+    missing = [key for key, value in said.items() if not value]
     if missing:
         raise Unreadable(f"{config}: an allow entry has no {', '.join(missing)}")
     return Allowance(
-        file=(here / str(entry["file"])).resolve(),
-        text=str(entry["text"]).strip(),
-        why=str(entry["why"]).strip(),
+        file=(here / said["file"]).resolve(),
+        text=said["text"],
+        why=said["why"],
     )
+
+
+def spoken(value: object) -> str:
+    return value.strip() if isinstance(value, str) else ""
