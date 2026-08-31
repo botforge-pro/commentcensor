@@ -6,7 +6,8 @@ import yaml
 
 CONFIG_NAME = ".commentcensor.yaml"
 KEYS = ("skip", "allow")
-ENTRY_KEYS = ("file", "text", "why")
+REASON = "what_was_tried_and_why_none_of_it_worked"
+ENTRY_KEYS = ("file", "text", REASON)
 
 
 class Unreadable(Exception):
@@ -17,7 +18,7 @@ class Unreadable(Exception):
 class Allowance:
     file: Path
     text: str
-    why: str
+    reason: str
     declared_in: Path
 
 
@@ -93,7 +94,10 @@ def read(config: Path) -> Rules:
 
 def allowance(entry: object, here: Path, config: Path) -> Allowance:
     if not isinstance(entry, dict):
-        raise Unreadable(f"{config}: every allow entry is a mapping of file, text and why")
+        raise Unreadable(f"{config}: every allow entry is a mapping of {', '.join(ENTRY_KEYS)}")
+    unknown = sorted(set(entry) - set(ENTRY_KEYS))
+    if unknown:
+        raise Unreadable(f"{config}: an allow entry has no {unknown[0]}; the keys are {ENTRY_KEYS}")
     said = {key: spoken(entry.get(key)) for key in ENTRY_KEYS}
     missing = [key for key, value in said.items() if not value]
     if missing:
@@ -101,7 +105,7 @@ def allowance(entry: object, here: Path, config: Path) -> Allowance:
     return Allowance(
         file=(here / said["file"]).resolve(),
         text=said["text"],
-        why=said["why"],
+        reason=said[REASON],
         declared_in=config.resolve(),
     )
 

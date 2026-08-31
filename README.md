@@ -49,17 +49,25 @@ skip:
 allow:
   - file: src/store.py
     text: "# retry three times before giving up"
-    why: "The provider drops the first request of a cold connection."
+    what_was_tried_and_why_none_of_it_worked:
+      "A name says three, not why three: the provider drops the first
+       request of a cold connection, and nothing in the code can say so."
 ```
 
 `skip` takes whole paths out of the check: generated code, vendored
 code, a directory you have not got to yet.
 
-`allow` names one comment and the reason it stays. The reason is
-required and is what the next reader is owed. An entry is matched by the
-comment's own text, not by its line, so moving the code keeps the
-exception and editing the comment loses it — an argument that was made
-for one sentence does not carry over to another.
+`allow` names one comment and what was tried instead of it. The field is
+long on purpose: it is not asking what the comment says, it is asking
+which owner you offered the fact to — a name, an extracted function, a
+line in the log, a test — and what each of them could not carry. A
+reason that only restates the comment is the tell that none of them was
+tried.
+
+An entry is matched by the comment's own text, not by its line, so
+moving the code keeps the exception and editing the comment loses it —
+an argument that was made for one sentence does not carry over to
+another.
 
 An entry that matches nothing is a finding of its own: it claims a
 comment is in a file, and the claim is false once the comment is edited,

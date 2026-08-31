@@ -65,7 +65,9 @@ def report(findings: Findings) -> None:
             "  allow:\n"
             "    - file: path/to/file\n"
             '      text: "the comment, exactly as printed above"\n'
-            '      why: "why the fact cannot be carried anywhere better"\n'
+            "      what_was_tried_and_why_none_of_it_worked:\n"
+            '        "the name, the extracted function, the log line and the test\n'
+            '         you tried, and what each of them could not carry"\n'
         )
     if findings.stale:
         print(

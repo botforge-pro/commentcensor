@@ -5,11 +5,12 @@ import pytest
 from commentcensor.cli import CLEAN, FOUND, UNUSABLE, main
 
 SPOKEN = "// the provider answers out of order\nvar x = 1\n"
+REASON = "what_was_tried_and_why_none_of_it_worked"
 ALLOWED = (
     "allow:\n"
     "  - file: sample.go\n"
     '    text: "// the provider answers out of order"\n'
-    '    why: "Their own docs say otherwise."\n'
+    f'    {REASON}: "A name cannot hold what their own docs deny."\n'
 )
 
 
@@ -17,7 +18,7 @@ def entry(file: str) -> str:
     return (
         f"  - file: {file}\n"
         '    text: "// the provider answers out of order"\n'
-        '    why: "Their own docs say otherwise."\n'
+        f'    {REASON}: "A name cannot hold what their own docs deny."\n'
     )
 
 
@@ -51,15 +52,28 @@ def test_the_same_file_answers_the_same_however_it_is_reached(tmp_path):
     assert main([str(tmp_path / "src")]) == CLEAN
 
 
-@pytest.mark.parametrize("why", ["", "~", "0", "false", '""'])
-def test_an_allowance_with_no_reason_is_refused(tmp_path, why):
+@pytest.mark.parametrize("reason", ["", "~", "0", "false", '""'])
+def test_an_allowance_with_no_reason_is_refused(tmp_path, reason):
     a_file(tmp_path)
     configured(
         tmp_path,
         "allow:\n"
         "  - file: sample.go\n"
         '    text: "// the provider answers out of order"\n'
-        f"    why: {why}\n",
+        f"    {REASON}: {reason}\n",
+    )
+
+    assert main([str(tmp_path)]) == UNUSABLE
+
+
+def test_an_allowance_still_calling_the_reason_why_is_refused(tmp_path):
+    a_file(tmp_path)
+    configured(
+        tmp_path,
+        "allow:\n"
+        "  - file: sample.go\n"
+        '    text: "// the provider answers out of order"\n'
+        '    why: "Their own docs say otherwise."\n',
     )
 
     assert main([str(tmp_path)]) == UNUSABLE
@@ -106,7 +120,7 @@ def test_a_comment_block_is_declared_by_its_whole_text(tmp_path):
         "    text: |-\n"
         "      // the provider answers\n"
         "      // out of order\n"
-        '    why: "Their own docs say otherwise."\n',
+        f'    {REASON}: "A name cannot hold what their own docs deny."\n',
     )
 
     assert main([str(tmp_path)]) == CLEAN
