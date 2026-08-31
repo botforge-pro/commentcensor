@@ -19,7 +19,8 @@ behaviour the program enforces, checks or reports.
 A comment earns its place only when the fact cannot live in any of those
 places and the reader needs it beside the code:
 
-- an external constraint of a library, platform, network or licence;
+- a constraint imposed by a named external system that code cannot express
+  or verify;
 - the price of a deliberate compromise;
 - an API obligation the type system cannot express, when that comment is
   the source of API documentation built by CI.
