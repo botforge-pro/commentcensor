@@ -21,7 +21,8 @@ places and the reader needs it beside the code:
 
 - a constraint imposed by a named external system that code cannot express
   or verify;
-- the price of a deliberate compromise;
+- a deliberate compromise whose rejected alternative and accepted cost are
+  named;
 - an API obligation the type system cannot express, when that comment is
   the source of API documentation built by CI.
 
