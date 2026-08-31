@@ -50,6 +50,7 @@ languages:
     grammar: swift
     extensions: [".swift"]
     directives:
+      - "swift-tools-version:"
       - "swiftlint:"
       - "swift-format-ignore"
       - "sourcery:"

@@ -18,6 +18,7 @@ INSTRUCTING = {
     "sample.go": "//go:embed all:assets\nvar assets string\n",
     "sample.sql": "-- name: get-wiki\nselect 1;\n",
     "sample.swift": "// swiftlint:disable force_cast\nlet x = 1\n",
+    "Package.swift": "// swift-tools-version: 6.0\nimport PackageDescription\n",
     "sample.kt": "// noinspection SpellCheckingInspection\nval x = 1\n",
     "sample.ts": "// @ts-expect-error the upstream types are wrong\nexport const x = 1;\n",
     "sample.js": "// eslint-disable-next-line no-undef\nexport const x = 1;\n",
