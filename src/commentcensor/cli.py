@@ -1,15 +1,25 @@
 import argparse
 import sys
+from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
 
-from .config import RuleBook, Unreadable
+from .config import Allowance, RuleBook, Unreadable
 from .languages import language_of
 from .scan import Comment, Unopenable, comments_in
 
 CLEAN = 0
 FOUND = 1
 UNUSABLE = 2
+
+
+@dataclass(frozen=True)
+class Findings:
+    undeclared: list[Comment]
+    stale: list[Allowance]
+
+    def any(self) -> bool:
+        return bool(self.undeclared or self.stale)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -22,27 +32,46 @@ def main(argv: list[str] | None = None) -> int:
         return UNUSABLE
 
     try:
-        undeclared = undeclared_in(paths)
+        findings = findings_in(paths)
     except (Unreadable, Unopenable) as failure:
         print(failure, file=sys.stderr)
         return UNUSABLE
 
-    for comment in undeclared:
+    if not findings.any():
+        return CLEAN
+    report(findings)
+    return FOUND
+
+
+def report(findings: Findings) -> None:
+    for comment in findings.undeclared:
         print(f"{comment.file}:{comment.line}: comment")
         for line in comment.text.splitlines():
             print(f"    {line}")
-    if not undeclared:
-        return CLEAN
-    print(f"\n{count(len(undeclared))} not declared in .commentcensor.yaml")
+    for allowance in findings.stale:
+        print(f"{named(allowance.declared_in)}: nothing to allow in {named(allowance.file)}")
+        for line in allowance.text.splitlines():
+            print(f"    {line}")
+
+    print()
+    if findings.undeclared:
+        print(f"{counted(len(findings.undeclared), 'comment')} not declared in .commentcensor.yaml")
+    if findings.stale:
+        print(f"{counted(len(findings.stale), 'declaration')} matching nothing")
     print(f"\n{manifesto()}")
-    print(
-        "Declare a comment that remains:\n\n"
-        "  allow:\n"
-        "    - file: path/to/file\n"
-        '      text: "the comment, exactly as printed above"\n'
-        '      why: "why the fact cannot be carried anywhere better"'
-    )
-    return FOUND
+    if findings.undeclared:
+        print(
+            "Declare a comment that remains:\n\n"
+            "  allow:\n"
+            "    - file: path/to/file\n"
+            '      text: "the comment, exactly as printed above"\n'
+            '      why: "why the fact cannot be carried anywhere better"\n'
+        )
+    if findings.stale:
+        print(
+            "\nA declaration claims the comment beneath it is still in the file. This one\n"
+            "is not there any more, so delete the entry."
+        )
 
 
 def manifesto() -> str:
@@ -60,19 +89,39 @@ def parser() -> argparse.ArgumentParser:
     return built
 
 
-def undeclared_in(paths: list[Path]) -> list[Comment]:
+def findings_in(paths: list[Path]) -> Findings:
     book = RuleBook()
-    found = []
+    undeclared: list[Comment] = []
+    used: set[Allowance] = set()
     for file in files_under(paths):
         rules = book.for_file(file)
         if rules.skips(file.resolve()):
             continue
-        found += [
-            comment
-            for comment in comments_in(file)
-            if rules.reason_for(file.resolve(), comment.text) is None
-        ]
-    return found
+        for comment in comments_in(file):
+            allowed = rules.allowances_for(file.resolve(), comment.text)
+            used.update(allowed)
+            if not allowed:
+                undeclared.append(comment)
+    for path in paths:
+        book.for_directory(path.resolve() if path.is_dir() else path.resolve().parent)
+    return Findings(undeclared, stale(book, used, paths))
+
+
+def stale(book: RuleBook, used: set[Allowance], paths: list[Path]) -> list[Allowance]:
+    declared = {allowance for rules in book.remembered.values() for allowance in rules.allowed}
+    left = [allowance for allowance in declared - used if within(allowance.file, paths)]
+    return sorted(
+        left, key=lambda allowance: (allowance.declared_in, allowance.file, allowance.text)
+    )
+
+
+def within(file: Path, paths: list[Path]) -> bool:
+    return any(file.is_relative_to(path.resolve()) for path in paths)
+
+
+def named(path: Path) -> str:
+    here = Path.cwd()
+    return str(path.relative_to(here)) if path.is_relative_to(here) else str(path)
 
 
 def files_under(paths: list[Path]) -> list[Path]:
@@ -97,8 +146,8 @@ def hidden(file: Path, root: Path) -> bool:
     return any(part.startswith(".") for part in file.relative_to(root).parts)
 
 
-def count(found: int) -> str:
-    return "1 comment" if found == 1 else f"{found} comments"
+def counted(found: int, thing: str) -> str:
+    return f"1 {thing}" if found == 1 else f"{found} {thing}s"
 
 
 if __name__ == "__main__":

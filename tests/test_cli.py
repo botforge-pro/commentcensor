@@ -24,8 +24,8 @@ def test_an_undeclared_comment_fails(tmp_path):
 def test_a_declared_comment_passes(tmp_path):
     configured(
         a_wiki(tmp_path),
-        'allow:\n'
-        '  - file: sample.go\n'
+        "allow:\n"
+        "  - file: sample.go\n"
         '    text: "// the provider answers out of order"\n'
         '    why: "Their own docs say otherwise."\n',
     )
@@ -35,8 +35,8 @@ def test_a_declared_comment_passes(tmp_path):
 def test_editing_the_comment_loses_the_argument_made_for_it(tmp_path):
     configured(
         a_wiki(tmp_path, "// the provider answers in another order entirely\nvar x = 1\n"),
-        'allow:\n'
-        '  - file: sample.go\n'
+        "allow:\n"
+        "  - file: sample.go\n"
         '    text: "// the provider answers out of order"\n'
         '    why: "Their own docs say otherwise."\n',
     )
@@ -46,8 +46,8 @@ def test_editing_the_comment_loses_the_argument_made_for_it(tmp_path):
 def test_an_allowance_without_a_reason_is_refused(tmp_path):
     configured(
         a_wiki(tmp_path),
-        'allow:\n'
-        '  - file: sample.go\n'
+        "allow:\n"
+        "  - file: sample.go\n"
         '    text: "// the provider answers out of order"\n'
         '    why: ""\n',
     )
@@ -69,8 +69,8 @@ def test_a_config_further_down_adds_to_the_one_above(tmp_path):
     configured(tmp_path, "skip:\n  - nothing/\n")
     configured(
         inner,
-        'allow:\n'
-        '  - file: sample.go\n'
+        "allow:\n"
+        "  - file: sample.go\n"
         '    text: "// the provider answers out of order"\n'
         '    why: "Their own docs say otherwise."\n',
     )

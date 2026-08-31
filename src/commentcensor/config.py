@@ -18,6 +18,7 @@ class Allowance:
     file: Path
     text: str
     why: str
+    declared_in: Path
 
 
 @dataclass
@@ -41,11 +42,12 @@ class Rules:
     def skips(self, path: Path) -> bool:
         return any(skipped.covers(path) for skipped in self.skipped)
 
-    def reason_for(self, file: Path, text: str) -> str | None:
-        for allowance in self.allowed:
-            if allowance.file == file and allowance.text == text.strip():
-                return allowance.why
-        return None
+    def allowances_for(self, file: Path, text: str) -> list[Allowance]:
+        return [
+            allowance
+            for allowance in self.allowed
+            if allowance.file == file and allowance.text == text.strip()
+        ]
 
     def joined(self, addition: "Rules") -> "Rules":
         return Rules(self.skipped + addition.skipped, self.allowed + addition.allowed)
@@ -100,6 +102,7 @@ def allowance(entry: object, here: Path, config: Path) -> Allowance:
         file=(here / said["file"]).resolve(),
         text=said["text"],
         why=said["why"],
+        declared_in=config.resolve(),
     )
 
 

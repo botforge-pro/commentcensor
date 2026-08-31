@@ -13,6 +13,14 @@ ALLOWED = (
 )
 
 
+def entry(file: str) -> str:
+    return (
+        f"  - file: {file}\n"
+        '    text: "// the provider answers out of order"\n'
+        '    why: "Their own docs say otherwise."\n'
+    )
+
+
 def a_file(directory: Path, source: str = SPOKEN, name: str = "sample.go") -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     written = directory / name
@@ -134,3 +142,59 @@ def test_a_clean_run_says_nothing(tmp_path, capsys):
 
     assert main([str(tmp_path)]) == CLEAN
     assert capsys.readouterr().out == ""
+
+
+def test_a_declaration_whose_comment_is_gone_fails(tmp_path):
+    a_file(tmp_path, "var x = 1\n")
+    configured(tmp_path, ALLOWED)
+
+    assert main([str(tmp_path)]) == FOUND
+
+
+def test_a_stale_declaration_is_named_with_its_config_and_its_text(tmp_path, capsys):
+    a_file(tmp_path, "var x = 1\n")
+    configured(tmp_path, ALLOWED)
+
+    assert main([str(tmp_path)]) == FOUND
+    printed = capsys.readouterr().out
+    assert ".commentcensor.yaml" in printed
+    assert "sample.go" in printed
+    assert "// the provider answers out of order" in printed
+
+
+def test_a_declaration_pointing_at_a_file_that_is_gone_fails(tmp_path):
+    a_file(tmp_path, "var x = 1\n")
+    configured(tmp_path, ALLOWED.replace("file: sample.go", "file: taken-away.go"))
+
+    assert main([str(tmp_path)]) == FOUND
+
+
+def test_a_declaration_for_a_file_outside_this_run_is_left_alone(tmp_path):
+    a_file(tmp_path / "src", name="kept.go")
+    a_file(tmp_path / "src", name="elsewhere.go")
+    configured(
+        tmp_path,
+        ALLOWED.replace("file: sample.go", "file: src/kept.go") + entry("src/elsewhere.go"),
+    )
+
+    assert main([str(tmp_path / "src" / "kept.go")]) == CLEAN
+
+
+def test_a_run_with_both_counts_both(tmp_path, capsys):
+    a_file(tmp_path, "// something else entirely\nvar x = 1\n")
+    configured(tmp_path, ALLOWED)
+
+    assert main([str(tmp_path)]) == FOUND
+    printed = capsys.readouterr().out
+    assert "1 comment not declared" in printed
+    assert "1 declaration matching nothing" in printed
+
+
+def test_a_declaration_under_a_skipped_path_fails(tmp_path):
+    a_file(tmp_path / "vendored")
+    configured(
+        tmp_path,
+        "skip:\n  - vendored/\n" + ALLOWED.replace("file: sample.go", "file: vendored/sample.go"),
+    )
+
+    assert main([str(tmp_path)]) == FOUND
