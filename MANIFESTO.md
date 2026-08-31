@@ -21,7 +21,6 @@ places and the reader needs it beside the code:
 
 - an external constraint of a library, platform, network or licence;
 - the price of a deliberate compromise;
-- a dead end that was tried and is recorded nowhere else;
 - an API obligation the type system cannot express, when that comment is
   the source of API documentation built by CI.
 
