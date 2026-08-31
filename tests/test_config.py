@@ -123,8 +123,10 @@ def test_what_to_do_is_said_once_after_the_findings(tmp_path, capsys):
 
     assert main([str(tmp_path)]) == FOUND
     printed = capsys.readouterr().out
-    assert printed.count("# The comment is not the source") == 1
-    assert printed.index("// second thing") < printed.index("# The comment is not the source")
+    assert printed.count("# Every comment is guilty until proven necessary") == 1
+    assert printed.index("// second thing") < printed.index(
+        "# Every comment is guilty until proven necessary"
+    )
 
 
 def test_a_clean_run_says_nothing(tmp_path, capsys):
