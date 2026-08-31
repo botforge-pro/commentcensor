@@ -24,6 +24,6 @@ places and the reader needs it beside the code:
 - a dead end that was tried and is recorded nowhere else;
 - a contract at the boundary of a module.
 
-If the fact can live elsewhere, the comment is an error. Making it shorter
-does not fix it. If it must remain, keep it brief and declare why no better
+If the fact can live elsewhere, the comment is an error. A shorter comment is
+still a comment. If it must remain, keep it brief and declare why no better
 owner can carry the fact.
