@@ -4,6 +4,9 @@ A comment creates a second source of truth. Code changes while the comment
 keeps asserting what used to be true, and readers trust the lie because it
 sits beside the code.
 
+A comment is any text in comment syntax or a docstring, except a licence,
+section marker, shebang or tool directive.
+
 Every fact has an owner:
 
 - names, types and structure say what the code is;
