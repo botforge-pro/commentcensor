@@ -22,7 +22,8 @@ places and the reader needs it beside the code:
 - an external constraint of a library, platform, network or licence;
 - the price of a deliberate compromise;
 - a dead end that was tried and is recorded nowhere else;
-- a contract at the boundary of a module.
+- an API obligation the type system cannot express, when that comment is
+  the source of API documentation built by CI.
 
 If the fact can live elsewhere, the comment is an error. A shorter comment is
 still a comment. If it must remain, keep it brief and declare why no better
