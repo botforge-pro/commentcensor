@@ -1,0 +1,92 @@
+licence_markers:
+  - SPDX-License-Identifier
+  - Copyright
+  - Licensed under
+
+marker_characters: "/-#*<!"
+
+languages:
+  python:
+    grammar: python
+    extensions: [".py", ".pyi"]
+    docstrings: true
+    directives:
+      - "noqa"
+      - "type:"
+      - "pragma:"
+      - "pylint:"
+      - "ruff:"
+      - "mypy:"
+      - "flake8:"
+      - "coverage:"
+      - "fmt:"
+      - "isort:"
+      - "yapf:"
+      - "black"
+
+  go:
+    grammar: go
+    extensions: [".go"]
+    directives:
+      - "go:"
+      - "+build"
+      - "nolint"
+      - "noinspection"
+      - "export "
+      - "cgo "
+      - "line "
+      - "extern "
+
+  sql:
+    grammar: sql
+    extensions: [".sql"]
+    directives:
+      - "noqa"
+      - "name:"
+      - "sqlfluff"
+
+  swift:
+    grammar: swift
+    extensions: [".swift"]
+    directives:
+      - "swiftlint:"
+      - "swift-format-ignore"
+      - "sourcery:"
+      - "periphery:"
+      - "swiftformat:"
+
+  kotlin:
+    grammar: kotlin
+    extensions: [".kt", ".kts"]
+    directives:
+      - "noinspection"
+      - "ktlint-"
+      - "detekt:"
+      - "Suppress("
+
+  typescript:
+    grammar: typescript
+    extensions: [".ts", ".mts", ".cts"]
+    directives: &script_directives
+      - "@ts-"
+      - "eslint"
+      - "tslint:"
+      - "prettier-ignore"
+      - "istanbul ignore"
+      - "c8 ignore"
+      - "v8 ignore"
+      - "biome-ignore"
+      - "<reference"
+      - "@jsx"
+      - "webpack"
+      - "@vite-ignore"
+
+  tsx:
+    grammar: tsx
+    extensions: [".tsx"]
+    directives: *script_directives
+
+  javascript:
+    grammar: javascript
+    extensions: [".js", ".jsx", ".mjs", ".cjs"]
+    directives: *script_directives
