@@ -25,5 +25,5 @@ places and the reader needs it beside the code:
   the source of API documentation built by CI.
 
 If the fact can live elsewhere, the comment is an error. A shorter comment is
-still a comment. If it must remain, keep it brief and declare why no better
-owner can carry the fact.
+still a comment. Every remaining comment MUST be declared in
+`.commentcensor.yaml` with the concrete reason it meets one of these exceptions.
