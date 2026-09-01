@@ -7,10 +7,14 @@ sits beside the code.
 A comment is any text in comment syntax or a docstring, except a licence,
 section marker, shebang or tool directive.
 
-Code meaning belongs in names, types and structure. Logs record runtime
-outcomes; failures are handled, propagated or logged. Tests enforce
-requirements, issues track unfinished work, project documentation owns product
-knowledge and working rules, and Git keeps the past.
+Every fact has an owner. Those owners include, but are not limited to:
+
+* names, types and structure for code meaning;
+* logs for runtime outcomes, while failures are handled, propagated or logged;
+* tests for requirements;
+* issues for unfinished work;
+* project documentation for product knowledge and working rules;
+* Git for the past.
 
 Code MUST NOT contain a rule, a paraphrase of a rule, or a pointer to its
 source, except in an identifier, error message or test name that states
