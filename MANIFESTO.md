@@ -20,11 +20,15 @@ Code MUST NOT contain a rule, a paraphrase of a rule, or a pointer to its
 source, except in an identifier, error message or test name that states
 behaviour the program enforces, checks or reports.
 
-A comment qualifies only when its content belongs beside the code. It must
-state a constraint imposed by a named external system that code cannot express
-or verify, describe a deliberate compromise whose rejected alternative and
-accepted cost are named, or document an API obligation the type system cannot
-express when CI builds that comment into the API documentation.
+A comment qualifies only when its content belongs beside the code and meets
+one of these exceptions:
+
+* a constraint imposed by a named external system that code cannot express
+  or verify;
+* a deliberate compromise whose rejected alternative and accepted cost are
+  named;
+* an API obligation the type system cannot express, when that comment is
+  the source of API documentation built by CI.
 
 If its content can live elsewhere, the comment is an error. A shorter comment
 is still a comment. Every remaining comment MUST be declared in
