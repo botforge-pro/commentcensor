@@ -26,8 +26,12 @@ it belongs in CI beside the formatter.
 
 These are not comments in that sense and pass without being declared:
 instructions to a tool (`# noqa`, `# type: ignore`, `//go:embed`,
-`// swiftlint:disable`, `@ts-expect-error`), a shebang, a licence header,
-and a section marker (`// MARK:`, `# region`).
+`// swiftlint:disable`, `@ts-expect-error`), a shebang, a section marker
+(`// MARK:`, `# region`), and a comment in the first five lines containing
+`SPDX-License-Identifier`, `Copyright` or `Licensed under`.
+
+Walking a directory ignores dot-directories. Pass a file explicitly if
+you want to check one inside a dot-directory.
 
 ## Languages
 
@@ -94,6 +98,9 @@ codebase adopts this by fixing its comments or by listing its paths in
 
 ## Installing
 
+Requires Python 3.11 or newer. Until the package is published on PyPI,
+install it directly from GitHub:
+
 ```
-pip install commentcensor
+python -m pip install git+https://github.com/botforge-pro/commentcensor.git
 ```
