@@ -151,6 +151,41 @@ def test_a_comment_block_is_declared_by_its_whole_text(tmp_path):
     assert main([str(tmp_path)]) == CLEAN
 
 
+def test_one_declaration_allows_only_one_identical_comment(tmp_path, capsys):
+    source = (
+        "// the provider answers out of order\n"
+        "var x = 1\n"
+        "// the provider answers out of order\n"
+        "var y = 2\n"
+    )
+    a_file(tmp_path, source)
+    configured(tmp_path, ALLOWED)
+
+    assert main([str(tmp_path)]) == FOUND
+    assert "1 comment not declared" in capsys.readouterr().out
+
+
+def test_one_comment_uses_only_one_identical_declaration(tmp_path, capsys):
+    a_file(tmp_path)
+    configured(tmp_path, ALLOWED + entry("sample.go"))
+
+    assert main([str(tmp_path)]) == FOUND
+    assert "1 declaration matching nothing" in capsys.readouterr().out
+
+
+def test_identical_comments_and_declarations_match_one_to_one(tmp_path):
+    source = (
+        "// the provider answers out of order\n"
+        "var x = 1\n"
+        "// the provider answers out of order\n"
+        "var y = 2\n"
+    )
+    a_file(tmp_path, source)
+    configured(tmp_path, ALLOWED + entry("sample.go"))
+
+    assert main([str(tmp_path)]) == CLEAN
+
+
 def test_a_skipped_path_covers_what_is_under_it(tmp_path):
     a_file(tmp_path / "vendored")
     configured(tmp_path, "skip:\n  - vendored/\n")

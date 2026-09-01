@@ -100,9 +100,14 @@ def findings_in(paths: list[Path]) -> Findings:
         if rules.skips(file.resolve()):
             continue
         for comment in comments_in(file):
-            allowed = rules.allowances_for(file.resolve(), comment.text)
-            used.update(allowed)
-            if not allowed:
+            available = [
+                allowance
+                for allowance in rules.allowances_for(file.resolve(), comment.text)
+                if allowance not in used
+            ]
+            if available:
+                used.add(available[0])
+            else:
                 undeclared.append(comment)
     for path in paths:
         book.for_directory(path.resolve() if path.is_dir() else path.resolve().parent)

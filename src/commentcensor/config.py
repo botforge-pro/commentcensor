@@ -20,6 +20,7 @@ class Allowance:
     text: str
     reason: str
     declared_in: Path
+    ordinal: int
 
 
 @dataclass
@@ -89,8 +90,8 @@ def read(config: Path) -> Rules:
         if not isinstance(entry, str):
             raise Unreadable(f"{config}: every skip entry is a string")
         rules.skipped.append(Skip(under=here.resolve(), pattern=entry))
-    for entry in entries(written, "allow", config):
-        rules.allowed.append(allowance(entry, here, config))
+    for ordinal, entry in enumerate(entries(written, "allow", config)):
+        rules.allowed.append(allowance(entry, here, config, ordinal))
     return rules
 
 
@@ -103,7 +104,7 @@ def entries(written: dict, setting: str, config: Path) -> list:
     return value
 
 
-def allowance(entry: object, here: Path, config: Path) -> Allowance:
+def allowance(entry: object, here: Path, config: Path, ordinal: int) -> Allowance:
     if not isinstance(entry, dict):
         raise Unreadable(f"{config}: every allow entry is a mapping of {', '.join(ENTRY_KEYS)}")
     unknown = sorted(set(entry) - set(ENTRY_KEYS))
@@ -118,6 +119,7 @@ def allowance(entry: object, here: Path, config: Path) -> Allowance:
         text=said["text"],
         reason=said[REASON],
         declared_in=config.resolve(),
+        ordinal=ordinal,
     )
 
 
