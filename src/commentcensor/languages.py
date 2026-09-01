@@ -82,12 +82,17 @@ def language_of(suffix: str) -> Language | None:
 
 
 def opens_with(text: str, phrases: tuple[str, ...]) -> bool:
+    stripped = without_decoration(text)
+    return any(opens_exactly_with(stripped, phrase) for phrase in phrases)
+
+
+def without_decoration(text: str) -> str:
     stripped = text
     earlier = None
     while stripped != earlier:
         earlier = stripped
         stripped = stripped.lstrip().lstrip(marker_characters())
-    return any(opens_exactly_with(stripped, phrase) for phrase in phrases)
+    return stripped
 
 
 def opens_exactly_with(stripped: str, phrase: str) -> bool:
@@ -108,7 +113,11 @@ def names_a_section(text: str) -> bool:
 
 
 def states_a_licence(text: str, line: int) -> bool:
-    return line <= 5 and any(marker in text for marker in phrases("licence_markers"))
+    return line <= 5 and any(
+        opens_exactly_with(without_decoration(comment_line), marker)
+        for comment_line in text.splitlines()
+        for marker in phrases("licence_markers")
+    )
 
 
 def runs_the_file(text: str, line: int) -> bool:

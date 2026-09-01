@@ -96,6 +96,23 @@ def test_a_licence_header_is_not_a_comment(tmp_path):
     assert comments_in(written(tmp_path, "sample.swift", source)) == []
 
 
+def test_a_decorated_licence_header_is_not_a_comment(tmp_path):
+    source = "/*\n * Copyright 2026 botforge-pro\n * Licensed under the MIT License\n */\nlet x = 1\n"
+    assert comments_in(written(tmp_path, "sample.swift", source)) == []
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "// Work around Copyright dialog\nlet x = 1\n",
+        "// This code is not Licensed under the old terms\nlet x = 1\n",
+        "// Copyrighted names are displayed here\nlet x = 1\n",
+    ],
+)
+def test_prose_containing_a_licence_marker_is_a_comment(tmp_path, source):
+    assert len(comments_in(written(tmp_path, "sample.swift", source))) == 1
+
+
 def test_a_licence_further_down_the_file_is_a_comment(tmp_path):
     source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet e = 5\n// Copyright somebody\n"
     assert len(comments_in(written(tmp_path, "sample.swift", source))) == 1
