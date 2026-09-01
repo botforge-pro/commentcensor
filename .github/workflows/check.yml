@@ -12,7 +12,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e . pytest ruff
-      - run: ruff check .
-      - run: pytest -q
-      - run: commentcensor .
+      - name: Install
+        run: pip install -e . pytest ruff
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: pytest -q
+      - name: Check commentcensor with itself
+        run: commentcensor .

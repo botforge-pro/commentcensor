@@ -1,5 +1,7 @@
 # commentcensor
 
+[![Check](https://github.com/botforge-pro/commentcensor/actions/workflows/check.yml/badge.svg)](https://github.com/botforge-pro/commentcensor/actions/workflows/check.yml)
+
 Every comment in your code is an error until you write down why it cannot
 be avoided.
 
