@@ -18,7 +18,8 @@ languages:
     docstrings: true
     directives:
       - "noqa"
-      - "type:"
+      - "type: ignore"
+      - "type: ("
       - "pragma:"
       - "pylint:"
       - "ruff:"
@@ -73,7 +74,9 @@ languages:
     extensions: [".ts", ".mts", ".cts"]
     directives: &script_directives
       - "@ts-"
-      - "eslint"
+      - "eslint-disable"
+      - "eslint-enable"
+      - "eslint-env"
       - "tslint:"
       - "prettier-ignore"
       - "istanbul ignore"
@@ -82,7 +85,15 @@ languages:
       - "biome-ignore"
       - "<reference"
       - "@jsx"
-      - "webpack"
+      - "webpackChunkName:"
+      - "webpackMode:"
+      - "webpackPrefetch:"
+      - "webpackPreload:"
+      - "webpackFetchPriority:"
+      - "webpackInclude:"
+      - "webpackExclude:"
+      - "webpackExports:"
+      - "webpackIgnore:"
       - "@vite-ignore"
       - "__PURE__"
       - "@__PURE__"

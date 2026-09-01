@@ -109,6 +109,18 @@ def test_a_javascript_build_directive_passes(tmp_path, source):
     assert comments_in(written(tmp_path, "sample.js", source)) == []
 
 
+@pytest.mark.parametrize(
+    "name,source",
+    [
+        ("sample.py", "# type: this retry is required\nx = 1\n"),
+        ("sample.js", "// webpack workaround details\nexport const x = 1;\n"),
+        ("sample.js", "// eslint migration remains unfinished\nexport const x = 1;\n"),
+    ],
+)
+def test_prose_beginning_like_a_tool_directive_is_a_comment(tmp_path, name, source):
+    assert len(comments_in(written(tmp_path, name, source))) == 1
+
+
 def test_a_python_docstring_is_a_comment(tmp_path):
     source = 'def retry():\n    """Retries the call."""\n    return 1\n'
     found = comments_in(written(tmp_path, "sample.py", source))
