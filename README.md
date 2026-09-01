@@ -63,12 +63,15 @@ allow:
 `skip` takes whole paths out of the check: generated code, vendored
 code, a directory you have not got to yet.
 
-`allow` names one comment and what was tried instead of it. The field is
-long on purpose: it is not asking what the comment says, it is asking
-which owner you offered the fact to — a name, an extracted function, a
-line in the log, a test — and what each of them could not carry. A
-reason that only restates the comment is the tell that none of them was
-tried.
+`allow` names one comment and records the alternatives tried before keeping
+it. The field is long on purpose: it asks which replacement was attempted,
+such as a name, extracted function, runtime log, test, issue or project
+documentation, and what each could not express, enforce or preserve. A reason
+that only restates the comment shows that no replacement was tried.
+
+commentcensor verifies that a declaration exists and still matches the
+comment. Code review decides whether its argument is true and meets one of
+the permitted exceptions.
 
 An entry is matched by the comment's own text, not by its line, so
 moving the code keeps the exception and editing the comment loses it —
