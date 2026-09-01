@@ -15,7 +15,7 @@ When the content is needed but can live in a form that expresses, enforces or pr
 * replace statements of required behaviour with tests that enforce it;
 * replace a comment used as the only record of a swallowed failure with a runtime log of the actual occurrence;
 * move unfinished work to an issue;
-* move product knowledge and working rules to project documentation;
+* move product knowledge and working rules to project or team documentation;
 * leave accounts of what the code used to do to Git history.
 
 ### Delete it
