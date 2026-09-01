@@ -85,11 +85,22 @@ def read(config: Path) -> Rules:
 
     here = config.parent
     rules = Rules()
-    for entry in written.get("skip") or []:
-        rules.skipped.append(Skip(under=here.resolve(), pattern=str(entry)))
-    for entry in written.get("allow") or []:
+    for entry in entries(written, "skip", config):
+        if not isinstance(entry, str):
+            raise Unreadable(f"{config}: every skip entry is a string")
+        rules.skipped.append(Skip(under=here.resolve(), pattern=entry))
+    for entry in entries(written, "allow", config):
         rules.allowed.append(allowance(entry, here, config))
     return rules
+
+
+def entries(written: dict, setting: str, config: Path) -> list:
+    value = written.get(setting)
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise Unreadable(f"{config}: {setting} must be a list")
+    return value
 
 
 def allowance(entry: object, here: Path, config: Path) -> Allowance:

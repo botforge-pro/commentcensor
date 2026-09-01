@@ -86,6 +86,31 @@ def test_a_setting_nobody_declared_is_refused(tmp_path):
     assert main([str(tmp_path)]) == UNUSABLE
 
 
+@pytest.mark.parametrize(
+    "yaml",
+    [
+        "skip: vendored/\n",
+        "skip: {directory: vendored/}\n",
+        "skip: [1]\n",
+        "allow: permitted\n",
+        "allow: {file: sample.go}\n",
+        "allow: [1]\n",
+    ],
+)
+def test_a_setting_that_is_not_a_list_of_entries_is_refused(tmp_path, yaml):
+    a_file(tmp_path)
+    configured(tmp_path, yaml)
+
+    assert main([str(tmp_path)]) == UNUSABLE
+
+
+def test_empty_settings_are_accepted(tmp_path):
+    a_file(tmp_path, "var x = 1\n")
+    configured(tmp_path, "skip:\nallow:\n")
+
+    assert main([str(tmp_path)]) == CLEAN
+
+
 def test_a_file_named_twice_is_counted_once(tmp_path, capsys):
     a_file(tmp_path)
 
