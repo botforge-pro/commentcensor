@@ -28,6 +28,8 @@ languages:
       - "fmt:"
       - "isort:"
       - "yapf:"
+      - "pyright:"
+      - "nosec"
 
   go:
     grammar: go
@@ -82,6 +84,11 @@ languages:
       - "@jsx"
       - "webpack"
       - "@vite-ignore"
+      - "__PURE__"
+      - "@__PURE__"
+      - "@__NO_SIDE_EFFECTS__"
+      - "sourceMappingURL="
+      - "sourceURL="
 
   tsx:
     grammar: tsx

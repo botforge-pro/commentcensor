@@ -1,3 +1,5 @@
+import codecs
+import re
 from dataclasses import dataclass
 from functools import cache
 from importlib.resources import files
@@ -20,6 +22,18 @@ class Language:
     grammar: str
     directives: tuple[str, ...]
     docstrings: bool
+
+    def declares_encoding(self, text: str, line: int) -> bool:
+        if self.name != "python" or line > 2:
+            return False
+        match = re.search(r"coding[=:][ \t]*([-_.a-zA-Z0-9]+)", text)
+        if match is None:
+            return False
+        try:
+            codecs.lookup(match.group(1))
+        except LookupError:
+            return False
+        return True
 
 
 @cache
@@ -68,7 +82,11 @@ def language_of(suffix: str) -> Language | None:
 
 
 def opens_with(text: str, phrases: tuple[str, ...]) -> bool:
-    stripped = text.lstrip(marker_characters()).lstrip()
+    stripped = text
+    earlier = None
+    while stripped != earlier:
+        earlier = stripped
+        stripped = stripped.lstrip().lstrip(marker_characters())
     return any(opens_exactly_with(stripped, phrase) for phrase in phrases)
 
 

@@ -86,6 +86,7 @@ def passes(node: Node, language: Language) -> bool:
     line = node.start_point[0] + 1
     return (
         runs_the_file(text, line)
+        or ("comment" in node.type and language.declares_encoding(text, line))
         or instructs_a_tool(text, language)
         or states_a_licence(text, line)
         or names_a_section(text)

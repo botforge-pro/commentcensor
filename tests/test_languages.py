@@ -61,6 +61,36 @@ def test_a_shebang_is_not_a_comment(tmp_path):
     assert comments_in(written(tmp_path, "run.py", "#!/usr/bin/env python3\nx = 1\n")) == []
 
 
+@pytest.mark.parametrize(
+    "source",
+    ["# coding: utf-8\nx = 1\n", "#!/usr/bin/env python3\n# -*- coding=utf-8 -*-\nx = 1\n"],
+)
+def test_a_python_encoding_cookie_passes(tmp_path, source):
+    assert comments_in(written(tmp_path, "sample.py", source)) == []
+
+
+def test_an_encoding_cookie_further_down_the_file_is_a_comment(tmp_path):
+    source = "x = 1\ny = 2\n# coding: utf-8\n"
+    assert len(comments_in(written(tmp_path, "sample.py", source))) == 1
+
+
+def test_prose_beginning_with_coding_is_a_comment(tmp_path):
+    source = "# coding: this branch handles retries\nx = 1\n"
+    assert len(comments_in(written(tmp_path, "sample.py", source))) == 1
+
+
+@pytest.mark.parametrize(
+    "name,source",
+    [
+        ("sample.js", "// coding: utf-8\nexport const x = 1;\n"),
+        ("sample.swift", "// coding: utf-8\nlet x = 1\n"),
+        ("sample.py", '\"\"\"coding: utf-8\"\"\"\nx = 1\n'),
+    ],
+)
+def test_an_encoding_claim_that_is_not_a_python_cookie_is_a_comment(tmp_path, name, source):
+    assert len(comments_in(written(tmp_path, name, source))) == 1
+
+
 def test_a_licence_header_is_not_a_comment(tmp_path):
     source = "// SPDX-License-Identifier: MIT\nlet x = 1\n"
     assert comments_in(written(tmp_path, "sample.swift", source)) == []
@@ -71,10 +101,32 @@ def test_a_licence_further_down_the_file_is_a_comment(tmp_path):
     assert len(comments_in(written(tmp_path, "sample.swift", source))) == 1
 
 
+@pytest.mark.parametrize(
+    "source",
+    ["const x = /*#__PURE__*/ factory();\n", "//# sourceMappingURL=sample.js.map\n"],
+)
+def test_a_javascript_build_directive_passes(tmp_path, source):
+    assert comments_in(written(tmp_path, "sample.js", source)) == []
+
+
 def test_a_python_docstring_is_a_comment(tmp_path):
     source = 'def retry():\n    """Retries the call."""\n    return 1\n'
     found = comments_in(written(tmp_path, "sample.py", source))
     assert [comment.line for comment in found] == [2]
+
+
+@pytest.mark.parametrize(
+    "name,source",
+    {
+        "sample.go": "package sample\n\n// Retry retries.\nfunc Retry() {}\n",
+        "sample.swift": "/// Retries.\nfunc retry() {}\n",
+        "sample.kt": "/** Retries. */\nfun retry() = 1\n",
+        "sample.ts": "/** Retries. */\nexport function retry() {}\n",
+        "sample.js": "/** Retries. */\nexport function retry() {}\n",
+    }.items(),
+)
+def test_a_documentation_comment_is_a_comment(tmp_path, name, source):
+    assert len(comments_in(written(tmp_path, name, source))) == 1
 
 
 def test_a_module_docstring_is_a_comment(tmp_path):
