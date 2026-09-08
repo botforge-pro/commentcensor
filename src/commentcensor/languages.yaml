@@ -46,8 +46,9 @@ languages:
     extensions: [".sql"]
     directives:
       - "noqa"
-      - "name:"
       - "sqlfluff"
+    directives_naming_one_token:
+      - "name:"
 
   swift:
     grammar: swift

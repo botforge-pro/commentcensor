@@ -21,6 +21,7 @@ class Language:
     name: str
     grammar: str
     directives: tuple[str, ...]
+    directives_naming_one_token: tuple[str, ...]
     docstrings: bool
 
     def declares_encoding(self, text: str, line: int) -> bool:
@@ -55,6 +56,9 @@ def defined() -> dict[str, Language]:
             name=name,
             grammar=str(entry["grammar"]),
             directives=tuple(str(directive) for directive in entry["directives"]),
+            directives_naming_one_token=tuple(
+                str(directive) for directive in entry.get("directives_naming_one_token") or ()
+            ),
             docstrings=bool(entry.get("docstrings", False)),
         )
         for extension in entry["extensions"]:
@@ -105,7 +109,19 @@ def opens_exactly_with(stripped: str, phrase: str) -> bool:
 
 
 def instructs_a_tool(text: str, language: Language) -> bool:
-    return opens_with(text, language.directives)
+    if opens_with(text, language.directives):
+        return True
+    return names_one_token(text, language.directives_naming_one_token)
+
+
+def names_one_token(text: str, phrases: tuple[str, ...]) -> bool:
+    stripped = without_decoration(text)
+    for phrase in phrases:
+        if not opens_exactly_with(stripped, phrase):
+            continue
+        argument = stripped[len(phrase) :].split()
+        return len(argument) == 1
+    return False
 
 
 def names_a_section(text: str) -> bool:

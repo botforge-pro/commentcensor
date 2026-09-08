@@ -138,6 +138,18 @@ def test_prose_beginning_like_a_tool_directive_is_a_comment(tmp_path, name, sour
     assert len(comments_in(written(tmp_path, name, source))) == 1
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        "-- name: this sentence hides behind a directive\nselect 1;\n",
+        "-- name: get-wiki, the one the settings page reads\nselect 1;\n",
+        "-- name:\nselect 1;\n",
+    ],
+)
+def test_prose_after_a_query_name_is_a_comment(tmp_path, source):
+    assert len(comments_in(written(tmp_path, "sample.sql", source))) == 1
+
+
 def test_a_python_docstring_is_a_comment(tmp_path):
     source = 'def retry():\n    """Retries the call."""\n    return 1\n'
     found = comments_in(written(tmp_path, "sample.py", source))

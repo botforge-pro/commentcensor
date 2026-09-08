@@ -8,6 +8,18 @@ what used to be true, and readers believe it.
 Changes are documented here in the format of
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.0] - 2026-09-08
+
+### Fixed
+
+- In SQL, `-- name:` passes as a directive only when a single token follows
+  it, which is what a query name is. Anything else after it is prose that was
+  hiding behind the directive and going unreported: `-- name: get-wiki, the
+  one the settings page reads` was read as an instruction to a tool.
+
+  A repository that passed on 0.1.0 may report comments now. Each of them was
+  always there; the check was looking past them.
+
 ## [0.1.0] - 2026-09-08
 
 First public release. Requires Python 3.11 or newer:
@@ -39,4 +51,5 @@ python -m pip install git+https://github.com/botforge-pro/commentcensor.git
 - The reasoning behind all of it is `MANIFESTO.md`, installed with the
   package and printed after the findings of a failing run.
 
+[0.2.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.1.0
