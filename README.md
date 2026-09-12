@@ -40,14 +40,18 @@ tree-sitter, so a `#` inside a string or a `//` inside a URL is not
 mistaken for a comment.
 
 Python docstrings count. A docstring that repeats the name of the
-function under it is the thing this tool exists to remove.
+function under it is the thing this tool exists to remove, and it stays a
+finding whether or not the project publishes a reference: the exemption
+covers a public name, not every string under a `def`.
 
 ## Configuration
 
-Two knobs, and there will not be a third.
+Three knobs.
 
 ```yaml
 # .commentcensor.yaml
+documentation: https://pkg.go.dev/example.com/thing
+
 skip:
   - Generated/
   - vendor/
@@ -59,6 +63,17 @@ allow:
       "A name says three, not why three: the provider drops the first
        request of a cold connection, and nothing in the code can say so."
 ```
+
+`documentation` is the address where this project's reference is published.
+With it, a comment the language's own generator publishes needs no entry of
+its own: a docstring of a public name, a Go doc comment on an exported
+declaration. Such a comment is not a second source of truth, because the
+reference is built from it. A comment anywhere else is still a comment.
+
+The address is read rather than believed. The page must name something the
+exempted comments document, so one that leads nowhere, or to somebody else's
+page, fails the run. It is kept under `$XDG_CACHE_HOME` for a week, so the
+check costs one request and then nothing.
 
 `skip` takes whole paths out of the check: generated code, vendored
 code, a directory you have not got to yet.

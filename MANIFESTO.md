@@ -29,16 +29,23 @@ Delete a comment that adds no content the reader needs. This includes a comment 
 
 A comment with unique content the reader needs belongs under Replace it or Keep it, not here.
 
-A docstring in a project where CI does not build documentation from it cannot qualify under Keep it. Replace or delete it according to its content.
+A documentation comment in a project that publishes no reference cannot qualify under Keep it. Replace or delete it according to its content.
 
 ### Keep it
 
 A licence header, section marker, shebang or tool directive recognised by the scanner passes without a declaration.
 
+So does a documentation comment, in a project that says where its reference is published:
+
+```yaml
+documentation: https://pkg.go.dev/example.com/thing
+```
+
+The exemption reaches only what the language's own generator publishes: a docstring of a public name, a Go doc comment on an exported declaration. A comment anywhere else is a comment. The address is not taken on trust either: the page is read, and it MUST name something the exempted comments document, so an address that leads nowhere or to someone else's page fails the run.
+
 Every other comment MUST be declared in `.commentcensor.yaml` and MUST meet one of these exceptions:
 
 * a constraint imposed by a named external system that code cannot express or verify;
-* a deliberate compromise whose rejected alternative and accepted cost are named;
-* an API obligation the type system cannot express, when that comment is the source of API documentation built by CI.
+* a deliberate compromise whose rejected alternative and accepted cost are named.
 
 A declaration does not make a comment valid. It records the alternatives that were tried and what each of them could not express, enforce or preserve. A shorter comment is still a comment.

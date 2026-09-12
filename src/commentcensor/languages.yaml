@@ -16,6 +16,7 @@ languages:
     grammar: python
     extensions: [".py", ".pyi"]
     docstrings: true
+    publishes_documentation: true
     directives:
       - "noqa"
       - "type: ignore"
@@ -35,6 +36,7 @@ languages:
   go:
     grammar: go
     extensions: [".go"]
+    publishes_documentation: true
     directives:
       - "go:"
       - "+build"

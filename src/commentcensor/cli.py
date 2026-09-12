@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .config import Allowance, RuleBook, Unreadable
 from .languages import language_of
+from .published import Unpublished, names_one_of
 from .scan import Comment, Unopenable, comments_in
 
 CLEAN = 0
@@ -33,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         findings = findings_in(paths)
-    except (Unreadable, Unopenable) as failure:
+    except (Unreadable, Unopenable, Unpublished) as failure:
         print(failure, file=sys.stderr)
         return UNUSABLE
 
@@ -95,6 +96,7 @@ def findings_in(paths: list[Path]) -> Findings:
     book = RuleBook()
     undeclared: list[Comment] = []
     used: set[Allowance] = set()
+    documented: dict[str, set[str]] = {}
     for file in files_under(paths):
         rules = book.for_file(file)
         if rules.skips(file.resolve()):
@@ -107,11 +109,23 @@ def findings_in(paths: list[Path]) -> Findings:
             ]
             if available:
                 used.add(available[0])
+            elif rules.documentation and comment.documents:
+                documented.setdefault(rules.documentation, set()).add(comment.documents)
             else:
                 undeclared.append(comment)
+    confirmed(documented)
     for path in paths:
         book.for_directory(path.resolve() if path.is_dir() else path.resolve().parent)
     return Findings(undeclared, stale(book, used, paths))
+
+
+def confirmed(documented: dict[str, set[str]]) -> None:
+    for url, names in sorted(documented.items()):
+        if not names_one_of(url, names):
+            raise Unpublished(
+                f"{url}: the page names none of {', '.join(sorted(names))}, so it is not "
+                "where these comments are published"
+            )
 
 
 def stale(book: RuleBook, used: set[Allowance], paths: list[Path]) -> list[Allowance]:

@@ -5,7 +5,8 @@ from pathlib import Path
 import yaml
 
 CONFIG_NAME = ".commentcensor.yaml"
-KEYS = ("skip", "allow")
+KEYS = ("skip", "allow", "documentation")
+ADDRESSES = ("https://", "http://")
 REASON = "what_was_tried_and_why_none_of_it_worked"
 ENTRY_KEYS = ("file", "text", REASON)
 
@@ -40,6 +41,7 @@ class Skip:
 class Rules:
     skipped: list[Skip] = field(default_factory=list)
     allowed: list[Allowance] = field(default_factory=list)
+    documentation: str = ""
 
     def skips(self, path: Path) -> bool:
         return any(skipped.covers(path) for skipped in self.skipped)
@@ -52,7 +54,11 @@ class Rules:
         ]
 
     def joined(self, addition: "Rules") -> "Rules":
-        return Rules(self.skipped + addition.skipped, self.allowed + addition.allowed)
+        return Rules(
+            self.skipped + addition.skipped,
+            self.allowed + addition.allowed,
+            addition.documentation or self.documentation,
+        )
 
 
 class RuleBook:
@@ -92,7 +98,19 @@ def read(config: Path) -> Rules:
         rules.skipped.append(Skip(under=here.resolve(), pattern=entry))
     for ordinal, entry in enumerate(entries(written, "allow", config)):
         rules.allowed.append(allowance(entry, here, config, ordinal))
+    rules.documentation = address(written.get("documentation"), config)
     return rules
+
+
+def address(written: object, config: Path) -> str:
+    if written is None:
+        return ""
+    if not isinstance(written, str) or not written.startswith(ADDRESSES):
+        raise Unreadable(
+            f"{config}: documentation is the address the reference is published at, "
+            f"beginning with {' or '.join(ADDRESSES)}"
+        )
+    return written
 
 
 def entries(written: dict, setting: str, config: Path) -> list:

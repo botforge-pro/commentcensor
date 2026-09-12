@@ -23,6 +23,7 @@ class Language:
     directives: tuple[str, ...]
     directives_naming_one_token: tuple[str, ...]
     docstrings: bool
+    publishes_documentation: bool
 
     def declares_encoding(self, text: str, line: int) -> bool:
         if self.name != "python" or line > 2:
@@ -60,6 +61,7 @@ def defined() -> dict[str, Language]:
                 str(directive) for directive in entry.get("directives_naming_one_token") or ()
             ),
             docstrings=bool(entry.get("docstrings", False)),
+            publishes_documentation=bool(entry.get("publishes_documentation", False)),
         )
         for extension in entry["extensions"]:
             claimed = by_extension.get(str(extension))

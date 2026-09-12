@@ -8,6 +8,33 @@ what used to be true, and readers believe it.
 Changes are documented here in the format of
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.0] - 2026-09-12
+
+### Added
+
+- `documentation`, the address where a project's reference is published. With
+  it set, a comment that the language's own generator publishes needs no entry
+  of its own: a docstring of a public name, a Go doc comment on an exported
+  declaration. A comment anywhere else is unaffected, and so is a project that
+  does not set it.
+
+  ```yaml
+  documentation: https://pkg.go.dev/example.com/thing
+  ```
+
+  The address is read rather than believed. The page must name something the
+  exempted comments document, so one that leads nowhere, or to another
+  project's page, fails the run with exit code 2. The page is kept under
+  `$XDG_CACHE_HOME` for a week, so the check costs one request and then
+  nothing.
+
+### Changed
+
+- The README promised a second setting would be the last. It was not. A
+  comment is a second source of truth, and that is exactly what a published
+  reference is not: it is built from the comment. Refusing that case was
+  refusing the one comment with no better home to move to.
+
 ## [0.2.0] - 2026-09-08
 
 ### Fixed
