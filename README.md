@@ -67,8 +67,10 @@ allow:
 `documentation` is the address where this project's reference is published.
 With it, a comment the language's own generator publishes needs no entry of
 its own: a docstring of a public name, a Go doc comment on an exported
-declaration. Such a comment is not a second source of truth, because the
-reference is built from it. A comment anywhere else is still a comment.
+declaration, KDoc on a public Kotlin declaration, or DocC on an explicitly
+public Swift declaration. Such a comment is not a second source of truth,
+because the reference is built from it. A comment anywhere else is still a
+comment.
 
 The address is read rather than believed. The page must name something the
 exempted comments document, so one that leads nowhere, or to somebody else's

@@ -172,6 +172,41 @@ def test_a_documentation_comment_is_a_comment(tmp_path, name, source):
     assert len(comments_in(written(tmp_path, name, source))) == 1
 
 
+@pytest.mark.parametrize(
+    "name,source,documented",
+    [
+        ("sample.swift", "/// Retries.\npublic func retry() {}\n", "retry"),
+        ("sample.swift", "/// Retries.\n@MainActor public func retry() {}\n", "retry"),
+        ("sample.swift", "/// Internal.\nfunc retry() {}\n", ""),
+        ("sample.kt", "/** Retries. */\nfun retry() = 1\n", "retry"),
+        ("sample.kt", "/** Internal. */\ninternal fun retry() = 1\n", ""),
+        (
+            "sample.kt",
+            '/** Internal. */\n@Deprecated("use another") internal fun retry() = 1\n',
+            "",
+        ),
+    ],
+)
+def test_a_native_doc_comment_names_the_published_declaration(tmp_path, name, source, documented):
+    found = comments_in(written(tmp_path, name, source))
+    assert [comment.documents for comment in found] == [documented]
+
+
+@pytest.mark.parametrize(
+    "name,source",
+    [
+        ("sample.swift", "/// Opens.\n// retry note\npublic func open() {}\n"),
+        ("sample.kt", "/** Opens. */\n// retry note\nfun open() = 1\n"),
+    ],
+)
+def test_plain_comment_between_documentation_and_declaration_is_not_published(
+    tmp_path, name, source
+):
+    found = comments_in(written(tmp_path, name, source))
+    assert len(found) == 1
+    assert found[0].documents == ""
+
+
 def test_a_module_docstring_is_a_comment(tmp_path):
     found = comments_in(written(tmp_path, "sample.py", '"""What this module is."""\nx = 1\n'))
     assert [comment.line for comment in found] == [1]

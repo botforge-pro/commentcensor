@@ -118,7 +118,11 @@ def speaking_nodes(root: Node, language: Language, module: str) -> Iterator[tupl
 
 
 def documented_export(node: Node, language: Language) -> str:
-    if not language.publishes_documentation or language.name != "go":
+    if not language.publishes_documentation:
+        return ""
+    if language.name in ("swift", "kotlin"):
+        return documented_native_export(node, language)
+    if language.name != "go":
         return ""
     parent = node.parent
     if parent is None or parent.type != GO_ROOT:
@@ -131,6 +135,46 @@ def documented_export(node: Node, language: Language) -> str:
     if declared.type == "package_clause":
         return next((text_of(child) for child in declared.named_children), "")
     return next((name for name in declared_names(declared) if name[:1].isupper()), "")
+
+
+def documented_native_export(node: Node, language: Language) -> str:
+    written = text_of(node)
+    if not written.startswith(("///", "/**")):
+        return ""
+    declared = node.next_named_sibling
+    if declared is None:
+        return ""
+    visibility = declaration_visibility(declared)
+    if language.name == "swift" and visibility not in ("public", "open"):
+        return ""
+    if language.name == "kotlin" and visibility in ("private", "internal", "protected"):
+        return ""
+    named = declared.child_by_field_name("name")
+    if named is None and language.name == "kotlin":
+        named = next(
+            (child for child in declared.named_children if child.type == "simple_identifier"),
+            None,
+        )
+    return text_of(named) if named is not None else ""
+
+
+def declaration_visibility(declared: Node) -> str:
+    modifiers = next(
+        (child for child in declared.named_children if child.type == "modifiers"), None
+    )
+    if modifiers is None:
+        return ""
+    visibility = first_descendant(modifiers, "visibility_modifier")
+    return text_of(visibility) if visibility is not None else ""
+
+
+def first_descendant(node: Node, kind: str) -> Node | None:
+    for child in node.named_children:
+        if child.type == kind:
+            return child
+        if found := first_descendant(child, kind):
+            return found
+    return None
 
 
 def declared_names(declared: Node) -> list[str]:

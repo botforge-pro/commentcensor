@@ -55,6 +55,7 @@ languages:
   swift:
     grammar: swift
     extensions: [".swift"]
+    publishes_documentation: true
     directives:
       - "swift-tools-version:"
       - "swiftlint:"
@@ -66,6 +67,7 @@ languages:
   kotlin:
     grammar: kotlin
     extensions: [".kt", ".kts"]
+    publishes_documentation: true
     directives:
       - "noinspection"
       - "ktlint-"

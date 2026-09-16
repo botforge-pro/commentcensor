@@ -8,6 +8,15 @@ what used to be true, and readers believe it.
 Changes are documented here in the format of
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.1] - 2026-09-16
+
+### Fixed
+
+- `documentation` now recognises KDoc on public Kotlin declarations and DocC
+  comments on explicitly public or open Swift declarations. Version 0.3.0 described
+  the setting as language-owned documentation but implemented it only for Go and
+  Python, leaving generated Kotlin and Swift references unable to use it.
+
 ## [0.3.0] - 2026-09-12
 
 ### Added
@@ -78,6 +87,7 @@ python -m pip install git+https://github.com/botforge-pro/commentcensor.git
 - The reasoning behind all of it is `MANIFESTO.md`, installed with the
   package and printed after the findings of a failing run.
 
+[0.3.1]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.3.1
 [0.3.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.3.0
 [0.2.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.1.0
