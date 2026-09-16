@@ -84,7 +84,7 @@ def test_prose_beginning_with_coding_is_a_comment(tmp_path):
     [
         ("sample.js", "// coding: utf-8\nexport const x = 1;\n"),
         ("sample.swift", "// coding: utf-8\nlet x = 1\n"),
-        ("sample.py", '\"\"\"coding: utf-8\"\"\"\nx = 1\n'),
+        ("sample.py", '"""coding: utf-8"""\nx = 1\n'),
     ],
 )
 def test_an_encoding_claim_that_is_not_a_python_cookie_is_a_comment(tmp_path, name, source):
@@ -97,7 +97,9 @@ def test_a_licence_header_is_not_a_comment(tmp_path):
 
 
 def test_a_decorated_licence_header_is_not_a_comment(tmp_path):
-    source = "/*\n * Copyright 2026 botforge-pro\n * Licensed under the MIT License\n */\nlet x = 1\n"
+    source = (
+        "/*\n * Copyright 2026 botforge-pro\n * Licensed under the MIT License\n */\nlet x = 1\n"
+    )
     assert comments_in(written(tmp_path, "sample.swift", source)) == []
 
 

@@ -25,8 +25,8 @@ build-backend = "hatchling.build"
 packages = ["src/commentcensor"]
 force-include = { "MANIFESTO.md" = "commentcensor/MANIFESTO.md" }
 
-[dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.6"]
+[project.optional-dependencies]
+dev = ["build>=1.2", "pytest>=8.0", "ruff>=0.6"]
 
 [tool.ruff]
 line-length = 100

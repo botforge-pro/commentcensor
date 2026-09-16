@@ -106,14 +106,6 @@ There is no mode that takes an existing repository as it stands. A
 codebase adopts this by fixing its comments or by listing its paths in
 `skip` until it does.
 
-## Lines of Code
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset=".github/loc-history-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset=".github/loc-history-light.svg">
-  <img alt="Lines of Code graph" src=".github/loc-history-light.svg">
-</picture>
-
 ## Installing
 
 Requires Python 3.11 or newer. Until the package is published on PyPI,
@@ -122,3 +114,11 @@ install it directly from GitHub:
 ```
 python -m pip install git+https://github.com/botforge-pro/commentcensor.git
 ```
+
+## Lines of Code
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/loc-history-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset=".github/loc-history-light.svg">
+  <img alt="Lines of Code graph" src=".github/loc-history-light.svg">
+</picture>

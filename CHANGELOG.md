@@ -78,5 +78,6 @@ python -m pip install git+https://github.com/botforge-pro/commentcensor.git
 - The reasoning behind all of it is `MANIFESTO.md`, installed with the
   package and printed after the findings of a failing run.
 
+[0.3.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.3.0
 [0.2.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.2.0
 [0.1.0]: https://github.com/botforge-pro/commentcensor/releases/tag/v0.1.0

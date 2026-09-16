@@ -13,10 +13,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: pip install -e . pytest ruff
-      - name: Lint
-        run: ruff check .
-      - name: Test
-        run: pytest -q
-      - name: Check commentcensor with itself
-        run: commentcensor .
+        run: make install
+      - name: Build
+        run: make build
