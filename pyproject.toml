@@ -1,6 +1,6 @@
 [project]
 name = "commentcensor"
-version = "0.3.1"
+version = "0.3.2"
 description = "Every comment is an error until you write down why it cannot be avoided"
 readme = "README.md"
 requires-python = ">=3.11"

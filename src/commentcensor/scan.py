@@ -151,11 +151,31 @@ def documented_native_export(node: Node, language: Language) -> str:
         return ""
     named = declared.child_by_field_name("name")
     if named is None and language.name == "kotlin":
-        named = next(
-            (child for child in declared.named_children if child.type == "simple_identifier"),
-            None,
-        )
+        named = kotlin_declaration_name(declared)
     return text_of(named) if named is not None else ""
+
+
+def kotlin_declaration_name(declared: Node) -> Node | None:
+    named = next(
+        (
+            child
+            for child in declared.named_children
+            if child.type in ("simple_identifier", "type_identifier")
+        ),
+        None,
+    )
+    if named is not None:
+        return named
+    variable = next(
+        (child for child in declared.named_children if child.type == "variable_declaration"),
+        None,
+    )
+    if variable is None:
+        return None
+    return variable.child_by_field_name("name") or next(
+        (child for child in variable.named_children if child.type == "simple_identifier"),
+        None,
+    )
 
 
 def declaration_visibility(declared: Node) -> str:

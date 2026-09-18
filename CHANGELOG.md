@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2 — 2026-09-18
+
+### Fixed
+
+- Recognize Kotlin documentation on classes and properties as published API documentation.
+
 commentcensor treats every comment in your code as an error until you write
 down why it cannot be avoided, on the grounds that a comment is a second
 source of truth: the code changes, the sentence beside it goes on asserting

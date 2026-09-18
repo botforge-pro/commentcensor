@@ -179,6 +179,8 @@ def test_a_documentation_comment_is_a_comment(tmp_path, name, source):
         ("sample.swift", "/// Retries.\n@MainActor public func retry() {}\n", "retry"),
         ("sample.swift", "/// Internal.\nfunc retry() {}\n", ""),
         ("sample.kt", "/** Retries. */\nfun retry() = 1\n", "retry"),
+        ("sample.kt", "/** A client. */\nclass Client\n", "Client"),
+        ("sample.kt", "/** The default. */\nval defaultClient = Client()\n", "defaultClient"),
         ("sample.kt", "/** Internal. */\ninternal fun retry() = 1\n", ""),
         (
             "sample.kt",
