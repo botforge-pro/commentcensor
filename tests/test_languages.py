@@ -177,6 +177,8 @@ def test_a_documentation_comment_is_a_comment(tmp_path, name, source):
     [
         ("sample.swift", "/// Retries.\npublic func retry() {}\n", "retry"),
         ("sample.swift", "/// Retries.\n@MainActor public func retry() {}\n", "retry"),
+        ("sample.swift", "public enum State {\n/// Done.\ncase done\n}\n", "done"),
+        ("sample.swift", "enum State {\n/// Done.\ncase done\n}\n", ""),
         ("sample.swift", "/// Internal.\nfunc retry() {}\n", ""),
         ("sample.kt", "/** Retries. */\nfun retry() = 1\n", "retry"),
         ("sample.kt", "/** A client. */\nclass Client\n", "Client"),

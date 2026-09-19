@@ -145,6 +145,8 @@ def documented_native_export(node: Node, language: Language) -> str:
     if declared is None:
         return ""
     visibility = declaration_visibility(declared)
+    if language.name == "swift" and declared.type == "enum_entry":
+        visibility = enclosing_swift_type_visibility(declared)
     if language.name == "swift" and visibility not in ("public", "open"):
         return ""
     if language.name == "kotlin" and visibility in ("private", "internal", "protected"):
@@ -153,6 +155,13 @@ def documented_native_export(node: Node, language: Language) -> str:
     if named is None and language.name == "kotlin":
         named = kotlin_declaration_name(declared)
     return text_of(named) if named is not None else ""
+
+
+def enclosing_swift_type_visibility(declared: Node) -> str:
+    holder = declared.parent
+    while holder is not None and holder.type != "class_declaration":
+        holder = holder.parent
+    return declaration_visibility(holder) if holder is not None else ""
 
 
 def kotlin_declaration_name(declared: Node) -> Node | None:

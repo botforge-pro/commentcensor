@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.3 — 2026-09-20
+
+### Fixed
+
+- Recognize DocC documentation on cases of public Swift enums as published API
+  documentation.
+
 ## 0.3.2 — 2026-09-18
 
 ### Fixed
