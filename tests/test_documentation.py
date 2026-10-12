@@ -77,6 +77,18 @@ def test_an_address_that_is_not_one_is_refused(tmp_path, monkeypatch):
 PUBLISHED_PAGE = "<html>type Dialect struct type Reader interface Name Read</html>"
 
 
+def test_a_doc_comment_in_a_test_file_still_needs_a_declaration(tmp_path, monkeypatch):
+    a_reference(monkeypatch, tmp_path, "<html>type Dialect struct TestDialect</html>")
+    project = a_project(tmp_path / "src", DOCUMENTED, f"documentation: {REFERENCE}\n")
+    (project / "thing_test.go").write_text(
+        "package thing\n\n// TestDialect checks what a dialect says.\nfunc TestDialect(t *testing.T) {}\n"
+    )
+
+    assert main([str(project)]) == FOUND, (
+        "go doc and pkg.go.dev publish nothing from a _test.go file"
+    )
+
+
 def a_go_project(tmp_path: Path, case: str, declarations: str) -> Path:
     return a_project(
         tmp_path / case.replace(" ", "-"),

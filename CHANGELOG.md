@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.5 — 2026-10-12
+
+### Fixed
+
+- A comment in a Go `_test.go` file is no longer taken as published documentation. `go doc` and
+  pkg.go.dev publish nothing from test files, so a doc comment over a test is a comment like any
+  other. Expect new findings over test functions: say why a test exists in the message it fails
+  with, or declare the comment.
+
 ## 0.3.4 — 2026-10-12
 
 ### Fixed

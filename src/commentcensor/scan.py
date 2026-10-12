@@ -30,6 +30,7 @@ GO_MEMBER_LISTS = {
     "interface_type": ("method_elem", "type_elem"),
 }
 GO_TYPE_SPECS = ("type_spec", "type_alias")
+GO_TEST_SUFFIX = "_test"
 GO_TYPE_WRAPPERS = ("pointer_type", "slice_type", "array_type", "map_type", "channel_type")
 
 
@@ -116,8 +117,9 @@ def passes(node: Node, language: Language) -> bool:
 
 
 def speaking_nodes(root: Node, language: Language, module: str) -> Iterator[tuple[Node, str]]:
+    published = not (language.name == "go" and module.endswith(GO_TEST_SUFFIX))
     for node in comment_nodes(root):
-        yield node, documented_export(node, language)
+        yield node, documented_export(node, language) if published else ""
     if language.docstrings:
         for holder, docstring in docstring_nodes(root):
             yield docstring, documented_holder(holder, language, module)
