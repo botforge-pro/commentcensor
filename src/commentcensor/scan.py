@@ -1,3 +1,4 @@
+import re
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,6 +32,7 @@ GO_MEMBER_LISTS = {
 }
 GO_TYPE_SPECS = ("type_spec", "type_alias")
 GO_TEST_SUFFIX = "_test"
+GO_EXAMPLE_NAME = re.compile(r"Example(?:_[a-z]\w*|[A-Z][^_\W]*(?:_[A-Z][^_\W]*)?(?:_[a-z]\w*)?)?")
 GO_TYPE_WRAPPERS = ("pointer_type", "slice_type", "array_type", "map_type", "channel_type")
 
 
@@ -117,9 +119,12 @@ def passes(node: Node, language: Language) -> bool:
 
 
 def speaking_nodes(root: Node, language: Language, module: str) -> Iterator[tuple[Node, str]]:
-    published = not (language.name == "go" and module.endswith(GO_TEST_SUFFIX))
+    test_file = language.name == "go" and module.endswith(GO_TEST_SUFFIX)
     for node in comment_nodes(root):
-        yield node, documented_export(node, language) if published else ""
+        documents = documented_export(node, language)
+        if test_file and not documents_a_go_example(node):
+            documents = ""
+        yield node, documents
     if language.docstrings:
         for holder, docstring in docstring_nodes(root):
             yield docstring, documented_holder(holder, language, module)
@@ -150,6 +155,19 @@ def documented_export(node: Node, language: Language) -> str:
             return ""
         return exported(member_names(declared))
     return ""
+
+
+def documents_a_go_example(node: Node) -> bool:
+    declared = go_doc_target(node)
+    if declared is None or declared.type != "function_declaration":
+        return False
+    if node.parent is None or node.parent.type != GO_ROOT:
+        return False
+    parameters = declared.child_by_field_name("parameters")
+    if parameters is None or parameters.named_child_count or declared.child_by_field_name("result"):
+        return False
+    named = declared.child_by_field_name("name")
+    return named is not None and GO_EXAMPLE_NAME.fullmatch(text_of(named)) is not None
 
 
 def go_doc_target(node: Node) -> Node | None:

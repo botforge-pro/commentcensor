@@ -4,10 +4,10 @@
 
 ### Fixed
 
-- A comment in a Go `_test.go` file is no longer taken as published documentation. `go doc` and
-  pkg.go.dev publish nothing from test files, so a doc comment over a test is a comment like any
-  other. Expect new findings over test functions: say why a test exists in the message it fails
-  with, or declare the comment.
+- In a Go `_test.go` file only the doc comment of an example function counts as published
+  documentation: pkg.go.dev shows an `Example…` function with its comment, and nothing else from a
+  test file. A doc comment over a test, benchmark or helper used to pass undeclared and is now
+  reported: say why a test exists in the message it fails with, or declare the comment.
 
 ## 0.3.4 — 2026-10-12
 

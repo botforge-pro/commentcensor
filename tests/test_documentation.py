@@ -77,16 +77,40 @@ def test_an_address_that_is_not_one_is_refused(tmp_path, monkeypatch):
 PUBLISHED_PAGE = "<html>type Dialect struct type Reader interface Name Read</html>"
 
 
-def test_a_doc_comment_in_a_test_file_still_needs_a_declaration(tmp_path, monkeypatch):
-    a_reference(monkeypatch, tmp_path, "<html>type Dialect struct TestDialect</html>")
-    project = a_project(tmp_path / "src", DOCUMENTED, f"documentation: {REFERENCE}\n")
-    (project / "thing_test.go").write_text(
-        "package thing\n\n// TestDialect checks what a dialect says.\nfunc TestDialect(t *testing.T) {}\n"
+def a_test_file(tmp_path: Path, case: str, declarations: str) -> Path:
+    project = a_project(
+        tmp_path / case.replace(" ", "-"), DOCUMENTED, f"documentation: {REFERENCE}\n"
     )
+    (project / "thing_test.go").write_text("package thing\n\n" + declarations)
+    return project
 
-    assert main([str(project)]) == FOUND, (
-        "go doc and pkg.go.dev publish nothing from a _test.go file"
-    )
+
+def test_a_doc_comment_in_a_test_file_needs_a_declaration_unless_it_documents_an_example(
+    tmp_path, monkeypatch
+):
+    a_reference(monkeypatch, tmp_path, "<html>type Dialect struct</html>")
+    published = {
+        "example of the package": "// Example shows the package.\nfunc Example() {}\n",
+        "example of a type": "// ExampleDialect shows a dialect.\nfunc ExampleDialect() {}\n",
+        "example of a method with a suffix": (
+            "// ExampleDialect_Name_short is short.\nfunc ExampleDialect_Name_short() {}\n"
+        ),
+    }
+    unpublished = {
+        "test": "// TestDialect checks.\nfunc TestDialect(t *testing.T) {}\n",
+        "benchmark": "// BenchmarkDialect measures.\nfunc BenchmarkDialect(b *testing.B) {}\n",
+        "helper": "// Helper builds a dialect.\nfunc Helper() {}\n",
+        "example with a parameter": "// ExampleDialect takes t.\nfunc ExampleDialect(t int) {}\n",
+        "example with a result": "// ExampleDialect returns.\nfunc ExampleDialect() int { return 0 }\n",
+        "name that only starts like an example": "// Examples lists.\nfunc Examples() {}\n",
+        "example with an exported suffix after the method": (
+            "// ExampleDialect_Name_Long is not a suffix.\nfunc ExampleDialect_Name_Long() {}\n"
+        ),
+    }
+    for case, declarations in published.items():
+        assert main([str(a_test_file(tmp_path, case, declarations))]) == CLEAN, case
+    for case, declarations in unpublished.items():
+        assert main([str(a_test_file(tmp_path, case, declarations))]) == FOUND, case
 
 
 def a_go_project(tmp_path: Path, case: str, declarations: str) -> Path:
