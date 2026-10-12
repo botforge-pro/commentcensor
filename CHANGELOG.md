@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.4 — 2026-10-12
+
+### Fixed
+
+- Recognize a Go doc comment on an exported field of an exported struct, or on a method of an
+  exported interface, as published API documentation. `go doc` and pkg.go.dev publish them with
+  the type, and 0.3.3 reported each as an undeclared comment.
+
 ## 0.3.3 — 2026-09-20
 
 ### Fixed

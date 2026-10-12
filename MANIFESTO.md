@@ -41,7 +41,7 @@ So does a documentation comment, in a project that says where its reference is p
 documentation: https://pkg.go.dev/example.com/thing
 ```
 
-The exemption reaches only what the language's own generator publishes: a docstring of a public name, a Go doc comment on an exported declaration. A comment anywhere else is a comment. The address is not taken on trust either: the page is read, and it MUST name something the exempted comments document, so an address that leads nowhere or to someone else's page fails the run.
+The exemption reaches only what the language's own generator publishes: a docstring of a public name, a Go doc comment on an exported declaration or on an exported field or method of an exported type. A comment anywhere else is a comment. The address is not taken on trust either: the page is read, and it MUST name something the exempted comments document, so an address that leads nowhere or to someone else's page fails the run.
 
 Every other comment MUST be declared in `.commentcensor.yaml` and MUST meet one of these exceptions:
 

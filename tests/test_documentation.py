@@ -72,3 +72,58 @@ def test_an_address_that_is_not_one_is_refused(tmp_path, monkeypatch):
     project = a_project(tmp_path / "src", DOCUMENTED, "documentation: pkg.go.dev/thing\n")
 
     assert main([str(project)]) == UNUSABLE
+
+
+PUBLISHED_PAGE = "<html>type Dialect struct type Reader interface Name Read</html>"
+
+
+def test_a_doc_comment_on_an_exported_field_needs_no_declaration(tmp_path, monkeypatch):
+    a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
+    source = (
+        "package thing\n"
+        "\n"
+        "type Dialect struct {\n"
+        "\t// Name is what the dialect is called.\n"
+        "\tName string\n"
+        "}\n"
+    )
+    project = a_project(tmp_path / "src", source, f"documentation: {REFERENCE}\n")
+
+    assert main([str(project)]) == CLEAN
+
+
+def test_a_doc_comment_on_an_exported_interface_method_needs_no_declaration(tmp_path, monkeypatch):
+    a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
+    source = (
+        "package thing\n"
+        "\n"
+        "type Reader interface {\n"
+        "\t// Read fills p.\n"
+        "\tRead(p []byte) (int, error)\n"
+        "}\n"
+    )
+    project = a_project(tmp_path / "src", source, f"documentation: {REFERENCE}\n")
+
+    assert main([str(project)]) == CLEAN
+
+
+def test_a_member_comment_go_doc_does_not_publish_still_needs_one(tmp_path, monkeypatch):
+    unpublished = {
+        "unexported field": "type Dialect struct {\n\t// name is private.\n\tname string\n}\n",
+        "field of an unexported type": "type dialect struct {\n\t// Name is private.\n\tName string\n}\n",
+        "field of a struct inside a field": (
+            "type Dialect struct {\n\tInner struct {\n\t\t// Deep is private.\n\t\tDeep int\n\t}\n}\n"
+        ),
+        "field of a struct declared in a function": (
+            "func make() {\n\ttype Local struct {\n\t\t// Name is private.\n\t\tName string\n\t}\n}\n"
+        ),
+    }
+    a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
+    for case, declarations in unpublished.items():
+        project = a_project(
+            tmp_path / case.replace(" ", "-"),
+            "package thing\n\n" + declarations,
+            f"documentation: {REFERENCE}\n",
+        )
+
+        assert main([str(project)]) == FOUND, case

@@ -25,6 +25,7 @@ GO_DECLARATIONS = (
     "const_declaration",
 )
 GO_ROOT = "source_file"
+GO_MEMBER_LISTS = {"field_declaration_list": "field_declaration", "interface_type": "method_elem"}
 
 
 class Unopenable(Exception):
@@ -125,6 +126,8 @@ def documented_export(node: Node, language: Language) -> str:
     if language.name != "go":
         return ""
     parent = node.parent
+    if parent is not None and parent.type in GO_MEMBER_LISTS:
+        return documented_go_member(node, parent)
     if parent is None or parent.type != GO_ROOT:
         return ""
     declared = node.next_named_sibling
@@ -135,6 +138,36 @@ def documented_export(node: Node, language: Language) -> str:
     if declared.type == "package_clause":
         return next((text_of(child) for child in declared.named_children), "")
     return next((name for name in declared_names(declared) if name[:1].isupper()), "")
+
+
+def documented_go_member(node: Node, members: Node) -> str:
+    if not exported_go_type(members):
+        return ""
+    member = node.next_named_sibling
+    while member is not None and member.type == "comment":
+        member = member.next_named_sibling
+    if member is None or member.type != GO_MEMBER_LISTS[members.type]:
+        return ""
+    return next(
+        (
+            text_of(child)
+            for child in member.children_by_field_name("name")
+            if text_of(child)[:1].isupper()
+        ),
+        "",
+    )
+
+
+def exported_go_type(members: Node) -> bool:
+    holder = members.parent if members.type == "field_declaration_list" else members
+    spec = holder.parent if holder is not None else None
+    if spec is None or spec.type != "type_spec":
+        return False
+    declaration = spec.parent
+    if declaration is None or declaration.parent is None or declaration.parent.type != GO_ROOT:
+        return False
+    named = spec.child_by_field_name("name")
+    return named is not None and text_of(named)[:1].isupper()
 
 
 def documented_native_export(node: Node, language: Language) -> str:
