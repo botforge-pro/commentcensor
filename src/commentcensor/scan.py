@@ -25,8 +25,12 @@ GO_DECLARATIONS = (
     "const_declaration",
 )
 GO_ROOT = "source_file"
-GO_MEMBER_LISTS = {"field_declaration_list": "field_declaration", "interface_type": "method_elem"}
+GO_MEMBER_LISTS = {
+    "field_declaration_list": ("field_declaration",),
+    "interface_type": ("method_elem", "type_elem"),
+}
 GO_TYPE_SPECS = ("type_spec", "type_alias")
+GO_TYPE_WRAPPERS = ("pointer_type", "slice_type", "array_type", "map_type", "channel_type")
 
 
 class Unopenable(Exception):
@@ -139,8 +143,8 @@ def documented_export(node: Node, language: Language) -> str:
     if parent.type == "type_declaration" and at_go_root(parent):
         named = declared.child_by_field_name("name") if declared.type in GO_TYPE_SPECS else None
         return exported([text_of(named)] if named is not None else [])
-    if parent.type in GO_MEMBER_LISTS and exported_go_type(parent):
-        if declared.type != GO_MEMBER_LISTS[parent.type]:
+    if parent.type in GO_MEMBER_LISTS and published_members(parent):
+        if declared.type not in GO_MEMBER_LISTS[parent.type]:
             return ""
         return exported(member_names(declared))
     return ""
@@ -167,6 +171,8 @@ def member_names(member: Node) -> list[str]:
     if names:
         return names
     embedded = member.child_by_field_name("type")
+    if embedded is None and member.type == "type_elem":
+        embedded = next(iter(member.named_children), None)
     if embedded is None:
         return []
     return [text_of(embedded).lstrip("*").split("[")[0].rsplit(".", 1)[-1]]
@@ -180,15 +186,27 @@ def at_go_root(declaration: Node) -> bool:
     return declaration.parent is not None and declaration.parent.type == GO_ROOT
 
 
-def exported_go_type(members: Node) -> bool:
+def published_members(members: Node) -> bool:
     holder = members.parent if members.type == "field_declaration_list" else members
-    spec = holder.parent if holder is not None else None
-    if spec is None or spec.type not in GO_TYPE_SPECS:
+    owner = holder.parent if holder is not None else None
+    while owner is not None and owner.type in GO_TYPE_WRAPPERS:
+        owner = owner.parent
+    if owner is None:
         return False
-    declaration = spec.parent
+    if owner.type == "field_declaration":
+        within = owner.parent
+        return (
+            bool(exported(member_names(owner)))
+            and within is not None
+            and within.type == "field_declaration_list"
+            and published_members(within)
+        )
+    if owner.type not in GO_TYPE_SPECS:
+        return False
+    declaration = owner.parent
     if declaration is None or not at_go_root(declaration):
         return False
-    named = spec.child_by_field_name("name")
+    named = owner.child_by_field_name("name")
     return named is not None and text_of(named)[:1].isupper()
 
 

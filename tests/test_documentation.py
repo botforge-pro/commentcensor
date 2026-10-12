@@ -103,6 +103,18 @@ def test_a_doc_comment_go_doc_publishes_needs_no_declaration(tmp_path, monkeypat
         "field of an alias of a struct": (
             "type Dialect = struct {\n\t// Name is its name.\n\tName string\n}\n"
         ),
+        "method of an alias of an interface": (
+            "type Reader = interface {\n\t// Read fills p.\n\tRead(p []byte) (int, error)\n}\n"
+        ),
+        "type embedded in an exported interface": (
+            "type Reader interface {\n\t// Reader reads.\n\tio.Reader\n}\n"
+        ),
+        "field of a struct inside an exported field": (
+            "type Dialect struct {\n\tName struct {\n\t\t// Read is deep.\n\t\tRead int\n\t}\n}\n"
+        ),
+        "field of a struct behind a pointer in an exported field": (
+            "type Dialect struct {\n\tName *struct {\n\t\t// Read is deep.\n\t\tRead int\n\t}\n}\n"
+        ),
     }
     a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
     for case, declarations in published.items():
@@ -113,8 +125,11 @@ def test_a_comment_go_doc_does_not_publish_still_needs_one(tmp_path, monkeypatch
     unpublished = {
         "unexported field": "type Dialect struct {\n\t// name is private.\n\tname string\n}\n",
         "field of an unexported type": "type dialect struct {\n\t// Name is private.\n\tName string\n}\n",
-        "field of a struct inside a field": (
-            "type Dialect struct {\n\tInner struct {\n\t\t// Deep is private.\n\t\tDeep int\n\t}\n}\n"
+        "field of a struct inside an unexported field": (
+            "type Dialect struct {\n\tinner struct {\n\t\t// Deep is private.\n\t\tDeep int\n\t}\n}\n"
+        ),
+        "type embedded in an unexported interface": (
+            "type reader interface {\n\t// Reader reads.\n\tio.Reader\n}\n"
         ),
         "field of a struct declared in a function": (
             "func make() {\n\ttype Local struct {\n\t\t// Name is private.\n\t\tName string\n\t}\n}\n"
