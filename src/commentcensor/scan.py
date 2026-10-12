@@ -26,6 +26,7 @@ GO_DECLARATIONS = (
 )
 GO_ROOT = "source_file"
 GO_MEMBER_LISTS = {"field_declaration_list": "field_declaration", "interface_type": "method_elem"}
+GO_TYPE_SPECS = ("type_spec", "type_alias")
 
 
 class Unopenable(Exception):
@@ -126,45 +127,66 @@ def documented_export(node: Node, language: Language) -> str:
     if language.name != "go":
         return ""
     parent = node.parent
-    if parent is not None and parent.type in GO_MEMBER_LISTS:
-        return documented_go_member(node, parent)
-    if parent is None or parent.type != GO_ROOT:
+    declared = go_doc_target(node)
+    if parent is None or declared is None:
         return ""
-    declared = node.next_named_sibling
-    while declared is not None and declared.type == "comment":
-        declared = declared.next_named_sibling
-    if declared is None or declared.type not in GO_DECLARATIONS:
-        return ""
-    if declared.type == "package_clause":
-        return next((text_of(child) for child in declared.named_children), "")
-    return next((name for name in declared_names(declared) if name[:1].isupper()), "")
+    if parent.type == GO_ROOT:
+        if declared.type not in GO_DECLARATIONS:
+            return ""
+        if declared.type == "package_clause":
+            return next((text_of(child) for child in declared.named_children), "")
+        return exported(declared_names(declared))
+    if parent.type == "type_declaration" and at_go_root(parent):
+        named = declared.child_by_field_name("name") if declared.type in GO_TYPE_SPECS else None
+        return exported([text_of(named)] if named is not None else [])
+    if parent.type in GO_MEMBER_LISTS and exported_go_type(parent):
+        if declared.type != GO_MEMBER_LISTS[parent.type]:
+            return ""
+        return exported(member_names(declared))
+    return ""
 
 
-def documented_go_member(node: Node, members: Node) -> str:
-    if not exported_go_type(members):
-        return ""
-    member = node.next_named_sibling
-    while member is not None and member.type == "comment":
-        member = member.next_named_sibling
-    if member is None or member.type != GO_MEMBER_LISTS[members.type]:
-        return ""
-    return next(
-        (
-            text_of(child)
-            for child in member.children_by_field_name("name")
-            if text_of(child)[:1].isupper()
-        ),
-        "",
-    )
+def go_doc_target(node: Node) -> Node | None:
+    before = node.prev_sibling
+    if before is not None and before.end_point[0] == node.start_point[0]:
+        return None
+    last = node
+    following = node.next_named_sibling
+    while following is not None and following.type == "comment":
+        if following.start_point[0] != last.end_point[0] + 1:
+            return None
+        last = following
+        following = following.next_named_sibling
+    if following is None or following.start_point[0] != last.end_point[0] + 1:
+        return None
+    return following
+
+
+def member_names(member: Node) -> list[str]:
+    names = [text_of(child) for child in member.children_by_field_name("name")]
+    if names:
+        return names
+    embedded = member.child_by_field_name("type")
+    if embedded is None:
+        return []
+    return [text_of(embedded).lstrip("*").split("[")[0].rsplit(".", 1)[-1]]
+
+
+def exported(names: list[str]) -> str:
+    return next((name for name in names if name[:1].isupper()), "")
+
+
+def at_go_root(declaration: Node) -> bool:
+    return declaration.parent is not None and declaration.parent.type == GO_ROOT
 
 
 def exported_go_type(members: Node) -> bool:
     holder = members.parent if members.type == "field_declaration_list" else members
     spec = holder.parent if holder is not None else None
-    if spec is None or spec.type != "type_spec":
+    if spec is None or spec.type not in GO_TYPE_SPECS:
         return False
     declaration = spec.parent
-    if declaration is None or declaration.parent is None or declaration.parent.type != GO_ROOT:
+    if declaration is None or not at_go_root(declaration):
         return False
     named = spec.child_by_field_name("name")
     return named is not None and text_of(named)[:1].isupper()

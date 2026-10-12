@@ -77,37 +77,39 @@ def test_an_address_that_is_not_one_is_refused(tmp_path, monkeypatch):
 PUBLISHED_PAGE = "<html>type Dialect struct type Reader interface Name Read</html>"
 
 
-def test_a_doc_comment_on_an_exported_field_needs_no_declaration(tmp_path, monkeypatch):
-    a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
-    source = (
-        "package thing\n"
-        "\n"
-        "type Dialect struct {\n"
-        "\t// Name is what the dialect is called.\n"
-        "\tName string\n"
-        "}\n"
+def a_go_project(tmp_path: Path, case: str, declarations: str) -> Path:
+    return a_project(
+        tmp_path / case.replace(" ", "-"),
+        "package thing\n\n" + declarations,
+        f"documentation: {REFERENCE}\n",
     )
-    project = a_project(tmp_path / "src", source, f"documentation: {REFERENCE}\n")
-
-    assert main([str(project)]) == CLEAN
 
 
-def test_a_doc_comment_on_an_exported_interface_method_needs_no_declaration(tmp_path, monkeypatch):
+def test_a_doc_comment_go_doc_publishes_needs_no_declaration(tmp_path, monkeypatch):
+    published = {
+        "exported field": "type Dialect struct {\n\t// Name is its name.\n\tName string\n}\n",
+        "two lines over an exported field": (
+            "type Dialect struct {\n\t// Name is its name,\n\t// in full.\n\tName string\n}\n"
+        ),
+        "exported interface method": (
+            "type Reader interface {\n\t// Read fills p.\n\tRead(p []byte) (int, error)\n}\n"
+        ),
+        "embedded exported type": "type Dialect struct {\n\t// Reader reads.\n\tio.Reader\n}\n",
+        "field of a generic type": "type Dialect[T any] struct {\n\t// Name is T.\n\tName T\n}\n",
+        "type in a group": "type (\n\t// Dialect is grouped.\n\tDialect struct{}\n)\n",
+        "field of a type in a group": (
+            "type (\n\tDialect struct {\n\t\t// Name is its name.\n\t\tName string\n\t}\n)\n"
+        ),
+        "field of an alias of a struct": (
+            "type Dialect = struct {\n\t// Name is its name.\n\tName string\n}\n"
+        ),
+    }
     a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
-    source = (
-        "package thing\n"
-        "\n"
-        "type Reader interface {\n"
-        "\t// Read fills p.\n"
-        "\tRead(p []byte) (int, error)\n"
-        "}\n"
-    )
-    project = a_project(tmp_path / "src", source, f"documentation: {REFERENCE}\n")
-
-    assert main([str(project)]) == CLEAN
+    for case, declarations in published.items():
+        assert main([str(a_go_project(tmp_path, case, declarations))]) == CLEAN, case
 
 
-def test_a_member_comment_go_doc_does_not_publish_still_needs_one(tmp_path, monkeypatch):
+def test_a_comment_go_doc_does_not_publish_still_needs_one(tmp_path, monkeypatch):
     unpublished = {
         "unexported field": "type Dialect struct {\n\t// name is private.\n\tname string\n}\n",
         "field of an unexported type": "type dialect struct {\n\t// Name is private.\n\tName string\n}\n",
@@ -117,13 +119,20 @@ def test_a_member_comment_go_doc_does_not_publish_still_needs_one(tmp_path, monk
         "field of a struct declared in a function": (
             "func make() {\n\ttype Local struct {\n\t\t// Name is private.\n\t\tName string\n\t}\n}\n"
         ),
+        "comment at the end of the line before an exported field": (
+            "type Dialect struct {\n\tTitle string // the title\n\tName string\n}\n"
+        ),
+        "comment parted from an exported field by a blank line": (
+            "type Dialect struct {\n\t// Parted from Name.\n\n\tName string\n}\n"
+        ),
+        "comment parted from an exported type by a blank line": (
+            "// Parted from Dialect.\n\ntype Dialect struct{}\n"
+        ),
+        "comment at the end of the line before an exported type": (
+            "var x = 1 // the x\ntype Dialect struct{}\n"
+        ),
+        "embedded unexported type": "type Dialect struct {\n\t// reader reads.\n\treader\n}\n",
     }
     a_reference(monkeypatch, tmp_path, PUBLISHED_PAGE)
     for case, declarations in unpublished.items():
-        project = a_project(
-            tmp_path / case.replace(" ", "-"),
-            "package thing\n\n" + declarations,
-            f"documentation: {REFERENCE}\n",
-        )
-
-        assert main([str(project)]) == FOUND, case
+        assert main([str(a_go_project(tmp_path, case, declarations))]) == FOUND, case
