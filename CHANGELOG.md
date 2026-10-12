@@ -4,9 +4,14 @@
 
 ### Fixed
 
-- Recognize a Go doc comment on an exported field of an exported struct, or on a method of an
-  exported interface, as published API documentation. `go doc` and pkg.go.dev publish them with
-  the type, and 0.3.3 reported each as an undeclared comment.
+- Recognize a Go doc comment on an exported field of an exported struct, an embedded field, a
+  method of an exported interface, a spec inside a grouped `type ( … )` and a field of a struct
+  alias as published API documentation. `go doc` and pkg.go.dev publish them with the type, and
+  0.3.3 reported each as an undeclared comment.
+- A Go comment counts as documentation only when it sits directly over its declaration, as
+  `go doc` requires. A comment that ends the line before a declaration, or is parted from it by a
+  blank line, was taken as its documentation and passed undeclared; it is now reported. Expect new
+  findings where such a comment stood: declare it or remove it.
 
 ## 0.3.3 — 2026-09-20
 
